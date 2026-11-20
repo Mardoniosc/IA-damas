@@ -73,7 +73,8 @@ never authorities.
 | `search` | Internal alpha-beta engine over the Rules Core, served over Hub (ADR-010) | **G8 (exists)** |
 | `adaptive` | Escalate consensus effort on divergence; trajectories (ADR-010) | **G8 (exists)** |
 | `tactics` | Threats, forcing-shot detector, criticality report (ADR-011) | **G9 (exists)** |
-| `strategy`, `decision` | Plans, final decision layer | G10 |
+| `strategy` | Descriptive strategic profile (ADR-012) | **G10 (exists)** |
+| `decision` | Minimax normalized-regret decision with confidence (ADR-012) | **G10 (exists)** |
 | `kb` | Position knowledge base (PostgreSQL + SQLAlchemy + Alembic) | G11 |
 | `bench` | Matches, tournaments, statistical evaluation | G12 |
 | `games`, `datasets` | PDN import, game annotation, dataset builds | G13 |

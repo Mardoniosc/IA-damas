@@ -4,7 +4,7 @@
     uvicorn --factory damas_ai.api.app:create_app --host 127.0.0.1 --port 8000
 
 Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7),
-POST /adaptive (G8), POST /tactics (G9).
+POST /adaptive (G8), POST /tactics (G9), POST /decision and POST /strategy (G10).
 Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
 serialize concurrent requests per process (ADR-007).
 """
@@ -28,6 +28,9 @@ from damas_ai.analysis.serialize import multi_view
 from damas_ai.config import Settings, load_engine_configs
 from damas_ai.consensus import DEFAULT_TOLERANCE, ConsensusAnalyzer
 from damas_ai.consensus.serialize import consensus_view
+from damas_ai.decision import DecisionMaker
+from damas_ai.decision.serialize import decision_view
+from damas_ai.strategy import profile
 from damas_ai.engines import AnalysisRequest, SearchLimit
 from damas_ai.rules import RULESETS, IllegalMoveError, Ruleset, apply_move
 from damas_ai.rules.notation import NotationError, from_fen, parse_move
@@ -68,6 +71,17 @@ class AdaptiveBody(ConsensusBody):
     factor: float = Field(default=2.0, gt=1, le=10)
     max_steps: int = Field(default=3, ge=1, le=6)
     max_move_time_s: float = Field(default=10.0, gt=0, le=600)
+
+
+class DecisionBody(ConsensusBody):
+    weights: dict[str, float] = Field(default_factory=dict)
+    max_candidates: int = Field(default=4, ge=1, le=8)
+
+
+class StrategyBody(BaseModel):
+    variant: str
+    fen: str
+    moves: list[str] = Field(default_factory=list)
 
 
 class TacticsBody(BaseModel):
@@ -157,6 +171,23 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None)
             divergence, gap = c.classification.value, c.proof_gap
         report = assess(request.position, Thresholds(depth=body.depth), divergence, gap)
         return criticality_view(report)
+
+    decider = DecisionMaker(the_pool)
+
+    @app.post("/decision")
+    def decision_endpoint(body: DecisionBody) -> dict[str, Any]:
+        request = _build_request(body)
+        d = decider.decide(request, body.engines, body.mode, body.tolerance, body.weights,
+                           body.max_candidates)
+        return decision_view(d, request.position)
+
+    @app.post("/strategy")
+    def strategy_endpoint(body: StrategyBody) -> dict[str, Any]:
+        request = _build_request(AnalysisBody(variant=body.variant, fen=body.fen, moves=body.moves,
+                                              limit=LimitBody(move_time_s=1.0)))
+        sp = profile(request.position)
+        return {"white": asdict(sp.white), "black": asdict(sp.black), "delta": sp.delta(),
+                "notes": sp.notes(), "side_to_move": sp.side_to_move.value}
 
     return app
 

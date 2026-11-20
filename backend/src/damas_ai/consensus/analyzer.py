@@ -135,7 +135,7 @@ class ConsensusAnalyzer:
         values: dict[tuple[int, int, frozenset[int]], dict[str, MoveValue]] = {}
         if do_cross:
             for p in proposals:
-                values[p.move.identity] = self._evaluate_move(request, p.move, ok, notes)
+                values[p.move.identity] = self.evaluate_move(request, p.move, ok, notes)
 
         best_utility: dict[str, float | None] = {}
         for engine_id in ok:
@@ -161,7 +161,7 @@ class ConsensusAnalyzer:
 
     # ---------------------------------------------------------------- internals
 
-    def _evaluate_move(self, request: AnalysisRequest, move: Move, engines: tuple[str, ...],
+    def evaluate_move(self, request: AnalysisRequest, move: Move, engines: tuple[str, ...],
                        notes: list[str]) -> dict[str, MoveValue]:
         after = apply_move(request.position, move)
         if not legal_moves(after):
