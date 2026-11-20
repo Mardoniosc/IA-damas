@@ -5,8 +5,9 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1 is complete. Gate G2 (Rules Core) is complete and awaiting review**
-> ([G2 report](docs/reports/g2/g2-report.md)). G3 starts only after explicit approval.
+> **Status: G1–G3 are complete. Gate G4 (SCAN Integration) is complete and awaiting review**
+> ([G4 report](docs/reports/g4/g4-report.md)). Scan 3.1 is built from source and passes
+> conformance on International 10x10. G5 starts only after explicit approval.
 
 ## Key G1 finding (read this first)
 
@@ -27,12 +28,15 @@ Brazilian-capable engines are searched for separately. See
 
 ```
 backend/                 Python package `damas_ai`
-  src/damas_ai/          config.py, logging_config.py (G1); rules/ = Rules Core (G2)
+  src/damas_ai/          config.py, logging_config.py (G1); rules/ = Rules Core (G2);
+                         engines/ = engine adapters, Hub protocol, conformance (G3)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
 config/                  *.example files only; real config is git-ignored
-scripts/poc/             G1 throwaway proof-of-concept: Hub protocol harness + mock engine
+scripts/poc/             G1 proof-of-concept (superseded by damas_ai.engines; kept as a record)
 scripts/oracle/          dev-only: regenerates Rules Core reference data with py-draughts (GPL, ADR-004)
+scripts/engines/         build_scan.ps1 (Scan 3.1 from source, MSVC); engine_evidence.py
+engines/                 git-ignored: locally built third-party engines (never committed)
 docs/
   architecture/          system overview, engine integration, position representation,
                          rules compatibility, technical discovery, ADRs
@@ -60,16 +64,27 @@ cd backend && DAMAS_SLOW_TESTS=1 python -m pytest tests/rules
 python -m pytest scripts/poc/tests
 ```
 
-Run the PoC harness against the mock engine:
+Real-engine checks (skipped unless engines are configured and present):
+
+```bash
+cd backend && DAMAS_ENGINES_CONFIG=../config/engines.toml python -m pytest -m engine -v
+```
+
+Run the G1 PoC harness against the mock engine:
 
 ```bash
 python scripts/poc/hub_poc.py --executable scripts/poc/mock_hub_engine.py --set variant=normal --move-time 0.1
 ```
 
-Run it against a real Hub engine you obtained yourself (the binary never goes in this repo):
+Build Scan 3.1 locally from source (needs Visual Studio with the C++ x64 toolset), then
+point `config/engines.toml` at `engines/scan31/bin/scan.exe`:
 
 ```bash
-python scripts/poc/hub_poc.py --executable "C:/engines/scan31/scan.exe" --arg hub --set variant=normal --set book=false --move-time 1
+powershell -ExecutionPolicy Bypass -File scripts/engines/build_scan.ps1
+```
+
+```bash
+python scripts/engines/engine_evidence.py --config config/engines.toml --engine scan --positions 1500 --move-time 0.1 --out reports/poc-runs/scan-evidence.json
 ```
 
 ## Configuration

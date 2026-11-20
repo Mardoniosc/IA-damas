@@ -53,8 +53,12 @@ class EngineConfig(BaseModel):
     # the platform never assumes an engine supports Brazilian 8x8 (see rules-compatibility.md).
     native_variant: str
     params: dict[str, str] = Field(default_factory=dict)
+    env: dict[str, str] = Field(default_factory=dict)  # extra environment variables
     init_timeout_s: float = Field(default=120.0, gt=0)
+    # Extra time allowed beyond the search limit before 'stop' is sent.
     search_timeout_s: float = Field(default=60.0, gt=0)
+    # After 'stop', how long to wait for the mandatory 'done' before killing the process.
+    stop_grace_s: float = Field(default=5.0, gt=0)
     quit_timeout_s: float = Field(default=5.0, gt=0)
 
     @field_validator("params", mode="before")

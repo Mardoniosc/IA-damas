@@ -16,7 +16,8 @@ config/engines.toml
 config/*.local.toml
 
 # Engine binaries and data are NEVER committed (licensing, size) - see ADR-004
-engines/
+# Anchored to the repo root: code packages named "engines" elsewhere must stay tracked.
+/engines/
 *.exe
 *.dll
 data/bitbases/

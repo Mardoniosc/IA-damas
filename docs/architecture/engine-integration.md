@@ -1,6 +1,8 @@
 # Engine integration architecture
 
-Status: design baseline from G1. Implementation is G3 (framework), G4 (SCAN) and G5 (KingsRow).
+Status: design baseline from G1. **The framework is implemented in G3** (`damas_ai.engines`;
+behaviour details in ADR-007 and `docs/reports/g3/g3-report.md`). G4 (SCAN) and G5
+(KingsRow hub) remain. The CB-DLL rows below are out of scope (ADR-005).
 Evidence for every protocol statement is in `docs/reports/g1/02-scan-report.md` and
 `03-kingsrow-report.md`.
 

@@ -3,6 +3,11 @@
 Evidence keys (S1…S6) refer to `docs/architecture/technical-discovery.md` §2.
 Investigated 2026-11-20. **No Scan binary was executed in G1** (none available; see PoC report).
 
+> **G4 update (2026-11-20):** Scan 3.1 was built from source and run. The protocol facts
+> below were confirmed, and the score encoding was refined from source and observation:
+> evals are clamped at ±80.00, the score is from the side to move's point of view, and win
+> distances are decoded. See `docs/reports/g4/g4-report.md` §2.3.
+
 ## Version intended for integration
 
 **Scan 3.1** (released 2019-07-06) by Fabien Letouzey. This is the latest version found in the

@@ -60,4 +60,4 @@ committed (third-party text). Re-fetch them from the URLs above.
 | Q3 | Kingsrow hub: Hub v1 or v2? Score/PV fields? | G5 (10x10 path only) | download `kr_hub_163.zip` (needs owner approval) and run `hub_poc.py` |
 | Q4 | Kingsrow CB `str[1024]` info format; `enginecommand` vocabulary actually supported | G5 (8x8 English/Italian path only) | run the DLL in a host process (G5) |
 | Q5 | Kingsrow redistribution/usage terms | any bundling | ask the author (contact listed on edgilbert.org) |
-| Q6 | Scan official Windows binary location for 3.1 | G4 | owner provides one, or build from GPL source (needs a C++14 toolchain; none verified on this machine) |
+| Q6 | Scan official Windows binary location for 3.1 | G4 | **CLOSED (G4)**: built from source with the installed MSVC (`scripts/engines/build_scan.ps1`) |

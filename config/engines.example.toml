@@ -17,7 +17,10 @@ args = ["hub"]                         # Scan only speaks Hub when launched with
 # working_dir defaults to the executable's folder: Scan reads scan.ini and data/ from the CWD.
 native_variant = "international-10x10"
 init_timeout_s = 180                   # bitbase loading can be slow
-search_timeout_s = 60
+search_timeout_s = 60                  # extra time beyond the search limit before 'stop' is sent
+stop_grace_s = 5                       # wait for 'done' after 'stop', then kill (ADR-007)
+quit_timeout_s = 5
+# env = { }                            # extra environment variables, if the engine needs any
 
 [engines.scan.params]                  # sent as `set-param name=... value=...` before `init`
 variant = "normal"                     # Scan 3.1 values: normal killer bt frisian losing (all 10x10)
