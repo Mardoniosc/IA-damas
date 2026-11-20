@@ -5,10 +5,10 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G5 are complete. Gate G6 (Multi-Engine Analysis) is complete and awaiting
-> review** ([G6 report](docs/reports/g6/g6-report.md)). Scan 3.1 and Kingsrow hub 1.63 run
-> side by side (International 10x10) via a Python API, a batch CLI and a local HTTP API.
-> G7 starts only after explicit approval.
+> **Status: G1–G6 are complete. Gate G7 (Consensus & Divergence) is complete and awaiting
+> review** ([G7 report](docs/reports/g7/g7-report.md)). Scan 3.1 and Kingsrow hub 1.63 run
+> side by side (International 10x10). Their disagreements are classified by cross-evaluation,
+> via a Python API, batch CLIs and a local HTTP API. G8 starts only after explicit approval.
 
 ## Key G1 finding (read this first)
 
@@ -32,7 +32,8 @@ backend/                 Python package `damas_ai`
   src/damas_ai/          config.py, logging_config.py (G1); rules/ = Rules Core (G2);
                          engines/ = engine adapters, Hub protocol, conformance (G3);
                          analysis/ = engine pool, multi-engine runs, batch CLI (G6);
-                         api/ = local HTTP API (G6)
+                         consensus/ = cross-evaluation, divergence classes (G7);
+                         api/ = local HTTP API (G6, G7)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
 config/                  *.example files only; real config is git-ignored
@@ -95,6 +96,12 @@ engine comparisons, ADR-008):
 
 ```bash
 cd backend && python -m damas_ai.analysis --config ../config/engines.toml --variant international-10x10 --fens ../reports/poc-runs/g6-fens.txt --move-time 0.2 --mode sequential --out ../reports/poc-runs/results.jsonl
+```
+
+Consensus batch (cross-evaluation on disagreements, sequential by default, ADR-009):
+
+```bash
+cd backend && python -m damas_ai.consensus --config ../config/engines.toml --variant international-10x10 --fens ../reports/poc-runs/g6-fens.txt --move-time 0.2 --out ../reports/poc-runs/consensus.jsonl
 ```
 
 Local HTTP API (no authentication; keep it on 127.0.0.1). It reads `DAMAS_ENGINES_CONFIG`:

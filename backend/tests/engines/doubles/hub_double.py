@@ -21,6 +21,8 @@ Requires ``damas_ai`` importable (tests pass PYTHONPATH). Flags:
   --slow-init S      sleep S seconds before 'ready'
   --pick last        choose the last legal move instead of the first (creates disagreement)
   --delay S          sleep S seconds before answering 'go' (parallelism tests)
+  --score-table F    JSON {DSA position: score text}: score reported for that analysed position
+                     (default -0.25), to script consensus scenarios
 """
 
 from __future__ import annotations
@@ -102,7 +104,14 @@ def main() -> int:
     ap.add_argument("--slow-init", type=float, default=0.0)
     ap.add_argument("--pick", choices=("first", "last"), default="first")
     ap.add_argument("--delay", type=float, default=0.0)
+    ap.add_argument("--score-table", help="JSON file: {canonical DSA string of analysed position: score text}")
     opt = ap.parse_args()
+    table: dict[str, str] = {}
+    if opt.score_table:
+        import json
+
+        with open(opt.score_table, encoding="utf-8") as fh:
+            table = json.load(fh)
 
     position: Position | None = None
     pending_answer = False
@@ -125,7 +134,8 @@ def main() -> int:
         if reply:
             pv.append("1-1" if opt.bad_pv else fmt(after, reply[0]))
         emit("info depth=1 score=0.00 nodes=12 time=0.001 nps=0.0")
-        emit(f'info depth=2 mean-depth=2.0 score=-0.25 nodes=140 time=0.002 nps=0.1 pv="{" ".join(pv)}"')
+        score = table.get(position.to_dsa(), "-0.25")
+        emit(f'info depth=2 mean-depth=2.0 score={score} nodes=140 time=0.002 nps=0.1 pv="{" ".join(pv)}"')
         if opt.error_line:
             emit('error message="double: synthetic error"')
         ponder = f" ponder={fmt(after, reply[0])}" if reply else ""

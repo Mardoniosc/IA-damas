@@ -3,7 +3,7 @@
 
     uvicorn --factory damas_ai.api.app:create_app --host 127.0.0.1 --port 8000
 
-Endpoints: GET /health, GET /variants, GET /engines, POST /analyses.
+Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7).
 Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
 serialize concurrent requests per process (ADR-007).
 """
@@ -23,6 +23,8 @@ import damas_ai
 from damas_ai.analysis import EnginePool, MultiEngineAnalyzer
 from damas_ai.analysis.serialize import multi_view
 from damas_ai.config import Settings, load_engine_configs
+from damas_ai.consensus import DEFAULT_TOLERANCE, ConsensusAnalyzer
+from damas_ai.consensus.serialize import consensus_view
 from damas_ai.engines import AnalysisRequest, SearchLimit
 from damas_ai.rules import RULESETS, IllegalMoveError, Ruleset, apply_move
 from damas_ai.rules.notation import NotationError, from_fen, parse_move
@@ -49,6 +51,12 @@ class AnalysisBody(BaseModel):
     engines: list[str] | None = None
     mode: Literal["parallel", "sequential"] = "parallel"
     transcript: bool = False
+
+
+class ConsensusBody(AnalysisBody):
+    mode: Literal["parallel", "sequential"] = "sequential"  # equal conditions (ADR-008)
+    cross_check: Literal["disagreement", "always", "never"] = "disagreement"
+    tolerance: float = Field(default=DEFAULT_TOLERANCE, ge=0, le=50)
 
 
 def _ruleset(variant: str) -> Ruleset:
@@ -92,24 +100,37 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None)
     def engines() -> list[dict[str, Any]]:
         return [asdict(s) for s in the_pool.status()]
 
+    consensus = ConsensusAnalyzer(the_pool)
+
     @app.post("/analyses")
     def analyses(body: AnalysisBody) -> dict[str, Any]:
-        ruleset = _ruleset(body.variant)
-        try:
-            root = from_fen(ruleset.geometry, body.fen)
-            moves, p = [], root
-            for text in body.moves:
-                m = parse_move(p, text)
-                moves.append(m)
-                p = apply_move(p, m)
-            limit = SearchLimit(depth=body.limit.depth, nodes=body.limit.nodes,
-                                move_time_s=body.limit.move_time_s)
-            request = AnalysisRequest(ruleset, root, limit, tuple(moves))
-        except (NotationError, IllegalMoveError, ValueError) as exc:
-            raise HTTPException(422, str(exc)) from exc
-        if not request.state.legal_moves():
-            raise HTTPException(422, "the position is terminal (no legal moves)")
+        request = _build_request(body)
         result = analyzer.analyze(request, body.engines, body.mode)
         return multi_view(result, request.position, body.transcript)
 
+    @app.post("/consensus")
+    def consensus_endpoint(body: ConsensusBody) -> dict[str, Any]:
+        request = _build_request(body)
+        result = consensus.analyze(request, body.engines, body.mode, body.cross_check, body.tolerance)
+        return consensus_view(result, request.position, body.transcript)
+
     return app
+
+
+def _build_request(body: AnalysisBody) -> AnalysisRequest:
+    ruleset = _ruleset(body.variant)
+    try:
+        root = from_fen(ruleset.geometry, body.fen)
+        moves, p = [], root
+        for text in body.moves:
+            m = parse_move(p, text)
+            moves.append(m)
+            p = apply_move(p, m)
+        limit = SearchLimit(depth=body.limit.depth, nodes=body.limit.nodes,
+                            move_time_s=body.limit.move_time_s)
+        request = AnalysisRequest(ruleset, root, limit, tuple(moves))
+    except (NotationError, IllegalMoveError, ValueError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    if not request.state.legal_moves():
+        raise HTTPException(422, "the position is terminal (no legal moves)")
+    return request

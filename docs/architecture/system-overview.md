@@ -69,7 +69,7 @@ never authorities.
 | `engines` | `EngineAdapter` interface, process supervisor, protocol adapters, score normalization | G3 |
 | `engines.scan`, `engines.kingsrow` | Engine-specific adapters + capability declarations | G4, G5 |
 | `analysis` | Engine pool, multi-engine fan-out (parallel/sequential), proposals, JSONL batch CLI | **G6 (exists)** |
-| `consensus` | Agreement metrics, divergence detection | G7 |
+| `consensus` | Cross-evaluation, per-engine regret, divergence classes, proof gaps, scale fit (ADR-009) | **G7 (exists)** |
 | `search` | Internal adaptive search | G8 |
 | `tactics`, `strategy`, `decision` | Pattern/threat detection, plans, final decision layer | G9-G10 |
 | `kb` | Position knowledge base (PostgreSQL + SQLAlchemy + Alembic) | G11 |
