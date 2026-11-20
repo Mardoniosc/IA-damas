@@ -19,6 +19,8 @@ Requires ``damas_ai`` importable (tests pass PYTHONPATH). Flags:
   --stderr           write diagnostics to stderr
   --no-id            omit the 'id' line
   --slow-init S      sleep S seconds before 'ready'
+  --pick last        choose the last legal move instead of the first (creates disagreement)
+  --delay S          sleep S seconds before answering 'go' (parallelism tests)
 """
 
 from __future__ import annotations
@@ -98,6 +100,8 @@ def main() -> int:
                  "short-capture", "error-line", "stderr", "no-id"):
         ap.add_argument(f"--{flag}", action="store_true")
     ap.add_argument("--slow-init", type=float, default=0.0)
+    ap.add_argument("--pick", choices=("first", "last"), default="first")
+    ap.add_argument("--delay", type=float, default=0.0)
     opt = ap.parse_args()
 
     position: Position | None = None
@@ -106,7 +110,8 @@ def main() -> int:
     def answer() -> None:
         assert position is not None
         moves = legal_moves(position)
-        chosen = moves[0]
+        chosen = moves[-1] if opt.pick == "last" else moves[0]
+        time.sleep(opt.delay)
         if opt.rules_blind:
             quiet = _quiet_moves(position)
             if quiet:
@@ -137,6 +142,7 @@ def main() -> int:
                 emit(f'id name={opt.name} version=0.0-test author="Damas Super AI tests" country=None')
             emit('param name=variant value=normal type=enum values="normal killer bt frisian losing"')
             emit("param name=book value=true type=bool")
+            emit("param name=threads value=1 type=int min=1 max=16")
             emit("wait")
         elif cmd == "init":
             time.sleep(opt.slow_init)

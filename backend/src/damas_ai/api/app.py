@@ -1,0 +1,115 @@
+"""HTTP API (FastAPI), first introduced in G6. Local-first: no authentication, so bind to
+127.0.0.1 only.
+
+    uvicorn --factory damas_ai.api.app:create_app --host 127.0.0.1 --port 8000
+
+Endpoints: GET /health, GET /variants, GET /engines, POST /analyses.
+Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
+serialize concurrent requests per process (ADR-007).
+"""
+
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any, Literal
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, model_validator
+
+import damas_ai
+from damas_ai.analysis import EnginePool, MultiEngineAnalyzer
+from damas_ai.analysis.serialize import multi_view
+from damas_ai.config import Settings, load_engine_configs
+from damas_ai.engines import AnalysisRequest, SearchLimit
+from damas_ai.rules import RULESETS, IllegalMoveError, Ruleset, apply_move
+from damas_ai.rules.notation import NotationError, from_fen, parse_move
+
+
+class LimitBody(BaseModel):
+    move_time_s: float | None = Field(default=None, gt=0, le=600)
+    depth: int | None = Field(default=None, gt=0, le=200)
+    nodes: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def _exactly_one(self) -> LimitBody:
+        if sum(v is not None for v in (self.move_time_s, self.depth, self.nodes)) != 1:
+            raise ValueError("give exactly one of move_time_s, depth, nodes")
+        return self
+
+
+class AnalysisBody(BaseModel):
+    variant: str
+    fen: str = Field(description="PDN FEN of the root position, e.g. W:W31-50:B1-20")
+    moves: list[str] = Field(default_factory=list,
+                             description="moves played from the root (numeric or algebraic)")
+    limit: LimitBody
+    engines: list[str] | None = None
+    mode: Literal["parallel", "sequential"] = "parallel"
+    transcript: bool = False
+
+
+def _ruleset(variant: str) -> Ruleset:
+    for r in RULESETS.values():
+        if r.variant == variant:
+            return r
+    raise HTTPException(422, f"unknown variant {variant!r}; known: "
+                             f"{sorted(r.variant for r in RULESETS.values())}")
+
+
+def create_app(settings: Settings | None = None, pool: EnginePool | None = None) -> FastAPI:
+    settings = settings or Settings()
+    owns_pool = pool is None
+    if pool is None:
+        path: Path | None = settings.engines_config
+        configs = load_engine_configs(path).values() if path else []
+        pool = EnginePool(configs, settings.engine_thread_budget)
+    the_pool = pool
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        yield
+        if owns_pool:
+            the_pool.close()
+
+    app = FastAPI(title="Damas Super AI", version=damas_ai.__version__, lifespan=lifespan)
+    analyzer = MultiEngineAnalyzer(the_pool)
+
+    @app.get("/health")
+    def health() -> dict[str, Any]:
+        return {"status": "ok", "version": damas_ai.__version__,
+                "engines_configured": len(the_pool.engine_ids())}
+
+    @app.get("/variants")
+    def variants() -> list[dict[str, Any]]:
+        return [{"variant": r.variant, "ruleset_id": r.id, "provisional": r.provisional,
+                 "board_size": r.geometry.size, "engines": the_pool.engines_for_variant(r.variant),
+                 "notes": list(r.notes)} for r in RULESETS.values()]
+
+    @app.get("/engines")
+    def engines() -> list[dict[str, Any]]:
+        return [asdict(s) for s in the_pool.status()]
+
+    @app.post("/analyses")
+    def analyses(body: AnalysisBody) -> dict[str, Any]:
+        ruleset = _ruleset(body.variant)
+        try:
+            root = from_fen(ruleset.geometry, body.fen)
+            moves, p = [], root
+            for text in body.moves:
+                m = parse_move(p, text)
+                moves.append(m)
+                p = apply_move(p, m)
+            limit = SearchLimit(depth=body.limit.depth, nodes=body.limit.nodes,
+                                move_time_s=body.limit.move_time_s)
+            request = AnalysisRequest(ruleset, root, limit, tuple(moves))
+        except (NotationError, IllegalMoveError, ValueError) as exc:
+            raise HTTPException(422, str(exc)) from exc
+        if not request.state.legal_moves():
+            raise HTTPException(422, "the position is terminal (no legal moves)")
+        result = analyzer.analyze(request, body.engines, body.mode)
+        return multi_view(result, request.position, body.transcript)
+
+    return app

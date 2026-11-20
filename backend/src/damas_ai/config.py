@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     log_format: Literal["text", "json"] = "text"
     log_dir: Path | None = None
     engines_config: Path | None = None
+    # Max sum of engine search threads running at once (None = os.cpu_count()).
+    engine_thread_budget: int | None = None
 
 
 class EngineConfig(BaseModel):

@@ -36,7 +36,7 @@ def test_handshake_identifies_engine_and_sets_declared_params(engine_factory) ->
     engine = engine_factory(params={"variant": "normal", "book": False})
     info = engine.info
     assert (info.name, info.version, info.profile) == ("HubDouble", "0.0-test", "generic-hub")
-    assert {p["name"] for p in info.declared_params} == {"variant", "book"}
+    assert {p["name"] for p in info.declared_params} == {"variant", "book", "threads"}
     sent = [line for _, d, line in engine.transcript if d == ">"]
     assert sent[:4] == ["hub", "set-param name=variant value=normal",
                         "set-param name=book value=false", "init"]
@@ -47,8 +47,8 @@ def test_handshake_identifies_engine_and_sets_declared_params(engine_factory) ->
 
 
 def test_undeclared_param_fails_start_and_kills_process(engine_factory) -> None:  # type: ignore[no-untyped-def]
-    with pytest.raises(EngineStartError, match="threads"):
-        engine_factory(params={"threads": "4"})
+    with pytest.raises(EngineStartError, match="hash-size"):
+        engine_factory(params={"hash-size": "64"})
 
 
 def test_missing_id_fails_start(engine_factory) -> None:  # type: ignore[no-untyped-def]

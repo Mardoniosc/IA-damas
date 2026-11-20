@@ -44,3 +44,16 @@ def test_real_engine_smoke_and_conformance(config) -> None:  # type: ignore[no-u
         assert first.status is AnalysisStatus.OK, first.violations
         report = run_conformance(engine, ruleset, positions, SearchLimit(move_time_s=0.2))
     assert report.passed, (report.by_status, [f.violations for f in report.failures])
+
+
+@pytest.mark.skipif(len(ENGINES) < 2, reason="needs two real engines configured")
+def test_real_multi_engine_analysis_parallel() -> None:
+    from damas_ai.analysis import EnginePool, MultiEngineAnalyzer
+
+    variant = ENGINES[0].native_variant
+    ruleset = next(r for r in RULESETS.values() if r.variant == variant)
+    with EnginePool([c for c in ENGINES if c.native_variant == variant]) as pool:
+        result = MultiEngineAnalyzer(pool).analyze(
+            AnalysisRequest(ruleset, ruleset.initial_position(), SearchLimit(move_time_s=0.5)))
+    assert len(result.engines_ok) >= 2, [o.error or o.result.violations for o in result.outcomes]
+    assert sum(len(p.engines) for p in result.proposals) == len(result.engines_ok)

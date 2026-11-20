@@ -68,7 +68,7 @@ never authorities.
 | `rules` | Board geometry, position, move generation, game state, draw rules, notation | G2 |
 | `engines` | `EngineAdapter` interface, process supervisor, protocol adapters, score normalization | G3 |
 | `engines.scan`, `engines.kingsrow` | Engine-specific adapters + capability declarations | G4, G5 |
-| `analysis` | Multi-engine fan-out, result aggregation | G6 |
+| `analysis` | Engine pool, multi-engine fan-out (parallel/sequential), proposals, JSONL batch CLI | **G6 (exists)** |
 | `consensus` | Agreement metrics, divergence detection | G7 |
 | `search` | Internal adaptive search | G8 |
 | `tactics`, `strategy`, `decision` | Pattern/threat detection, plans, final decision layer | G9-G10 |
@@ -76,7 +76,7 @@ never authorities.
 | `bench` | Matches, tournaments, statistical evaluation | G12 |
 | `games`, `datasets` | PDN import, game annotation, dataset builds | G13 |
 | `learning` | Training/evaluation pipelines (PyTorch, optional) | G14 |
-| `api` | FastAPI app | first gate that exposes functionality over HTTP (expected G6) |
+| `api` | FastAPI app: health, variants, engines, analyses (local only, ADR-008) | **G6 (exists)** |
 
 ## 5. Dependency introduction policy
 
@@ -88,7 +88,7 @@ gate's report:
 | pydantic, pydantic-settings | G1 (added) | config validation |
 | pytest, pytest-cov | G1 (dev) | tests |
 | ruff | G2 (dev) | lint/format |
-| FastAPI + uvicorn | G6 (or earlier if an API is needed) | HTTP API |
+| FastAPI + uvicorn (+ httpx dev) | **G6 (added)** | HTTP API |
 | SQLAlchemy, Alembic, psycopg | G11 (or earlier if persistence of analyses is required in G6-G7) | knowledge base |
 | PostgreSQL server | same as above | **not installed on the dev machine today** (`psql` not found, 2026-11-20) |
 | Angular | G6/G15 | UI |

@@ -5,21 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "damas-ai"
 version = "0.1.0"
-description = "Damas Super AI - multi-engine Brazilian checkers intelligence platform (G1 foundation)"
+description = "Damas Super AI - multi-engine Brazilian checkers intelligence platform"
 readme = "../README.md"
 requires-python = ">=3.11"
-# G1 runtime dependencies are deliberately minimal (configuration + validation only).
-# FastAPI, SQLAlchemy, Alembic and PostgreSQL drivers are added in the gate that first needs them
-# (see docs/architecture/system-overview.md, "Dependency introduction policy").
+# Dependencies are added in the gate that first needs them (system-overview.md,
+# "Dependency introduction policy"). G6 added FastAPI (HTTP API) and uvicorn (to serve it).
+# SQLAlchemy, Alembic and PostgreSQL drivers come with persistence (G11 or earlier if needed).
 dependencies = [
   "pydantic>=2.12,<3",
   "pydantic-settings>=2.11,<3",
+  "fastapi>=0.140,<1",
+  "uvicorn>=0.52,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest>=9,<10",
   "pytest-cov>=7",
+  "httpx>=0.28,<1",  # FastAPI TestClient
 ]
 
 [tool.setuptools.packages.find]

@@ -5,9 +5,10 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G4 are complete. Gate G5 (KingsRow Integration) is complete and awaiting
-> review** ([G5 report](docs/reports/g5/g5-report.md)). Scan 3.1 and Kingsrow hub 1.63 both
-> pass conformance on International 10x10. G6 starts only after explicit approval.
+> **Status: G1–G5 are complete. Gate G6 (Multi-Engine Analysis) is complete and awaiting
+> review** ([G6 report](docs/reports/g6/g6-report.md)). Scan 3.1 and Kingsrow hub 1.63 run
+> side by side (International 10x10) via a Python API, a batch CLI and a local HTTP API.
+> G7 starts only after explicit approval.
 
 ## Key G1 finding (read this first)
 
@@ -29,7 +30,9 @@ Brazilian-capable engines are searched for separately. See
 ```
 backend/                 Python package `damas_ai`
   src/damas_ai/          config.py, logging_config.py (G1); rules/ = Rules Core (G2);
-                         engines/ = engine adapters, Hub protocol, conformance (G3)
+                         engines/ = engine adapters, Hub protocol, conformance (G3);
+                         analysis/ = engine pool, multi-engine runs, batch CLI (G6);
+                         api/ = local HTTP API (G6)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
 config/                  *.example files only; real config is git-ignored
@@ -46,7 +49,7 @@ docs/
 
 ## Quick start (development)
 
-Requirements: Python 3.11+. PostgreSQL, Node/Angular and Docker are **not** needed for G1.
+Requirements: Python 3.11+. PostgreSQL, Node/Angular and Docker are **not** needed yet.
 
 ```bash
 cd backend
@@ -85,6 +88,19 @@ powershell -ExecutionPolicy Bypass -File scripts/engines/build_scan.ps1
 
 ```bash
 python scripts/engines/engine_evidence.py --config config/engines.toml --engine scan --positions 1500 --move-time 0.1 --out reports/poc-runs/scan-evidence.json
+```
+
+Multi-engine batch analysis (one FEN per line → JSONL; use `--mode sequential` for fair
+engine comparisons, ADR-008):
+
+```bash
+cd backend && python -m damas_ai.analysis --config ../config/engines.toml --variant international-10x10 --fens ../reports/poc-runs/g6-fens.txt --move-time 0.2 --mode sequential --out ../reports/poc-runs/results.jsonl
+```
+
+Local HTTP API (no authentication; keep it on 127.0.0.1). It reads `DAMAS_ENGINES_CONFIG`:
+
+```bash
+cd backend && DAMAS_ENGINES_CONFIG=../config/engines.toml python -m uvicorn --factory damas_ai.api.app:create_app --app-dir src --host 127.0.0.1 --port 8765
 ```
 
 ## Configuration
