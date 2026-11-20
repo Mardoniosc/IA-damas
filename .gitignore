@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Local configuration (never commit machine-specific paths or secrets)
+.env
+config/engines.toml
+config/*.local.toml
+
+# Engine binaries and data are NEVER committed (licensing, size) - see ADR-004
+engines/
+*.exe
+*.dll
+data/bitbases/
+data/egdb/
+
+# Runtime output
+logs/
+var/
+reports/poc-runs/
+
+# Node / Angular (when frontend is scaffolded)
+node_modules/
+frontend/dist/
+frontend/.angular/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

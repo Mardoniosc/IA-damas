@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "damas-ai"
+version = "0.1.0"
+description = "Damas Super AI - multi-engine Brazilian checkers intelligence platform (G1 foundation)"
+readme = "../README.md"
+requires-python = ">=3.11"
+# G1 runtime dependencies are deliberately minimal (configuration + validation only).
+# FastAPI, SQLAlchemy, Alembic and PostgreSQL drivers are added in the gate that first needs them
+# (see docs/architecture/system-overview.md, "Dependency introduction policy").
+dependencies = [
+  "pydantic>=2.12,<3",
+  "pydantic-settings>=2.11,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=9,<10",
+  "pytest-cov>=7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+  "engine: requires a real engine executable configured locally (skipped otherwise)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM"]

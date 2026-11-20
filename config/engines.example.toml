@@ -1,0 +1,37 @@
+# Engine definitions - EXAMPLE. Copy to config/engines.toml (git-ignored) and edit.
+# Point DAMAS_ENGINES_CONFIG at the copy. Executable paths can also be supplied per engine
+# through DAMAS_ENGINE_<ID>_EXECUTABLE (for example DAMAS_ENGINE_SCAN_EXECUTABLE).
+#
+# IMPORTANT (G1 finding): none of the engines below plays Brazilian 8x8 draughts.
+# `native_variant` records what each engine actually plays. See
+# docs/architecture/rules-compatibility.md before enabling anything.
+#
+# No engine binary is distributed with this repository (ADR-004). Obtain each one yourself
+# from its author, under the author's terms.
+
+[engines.scan]
+enabled = false
+protocol = "hub"                       # Hub protocol v2 (protocol.txt of Scan 3.1)
+executable = "REPLACE/WITH/PATH/TO/scan.exe"
+args = ["hub"]                         # Scan only speaks Hub when launched with "hub"
+# working_dir defaults to the executable's folder: Scan reads scan.ini and data/ from the CWD.
+native_variant = "international-10x10"
+init_timeout_s = 180                   # bitbase loading can be slow
+search_timeout_s = 60
+
+[engines.scan.params]                  # sent as `set-param name=... value=...` before `init`
+variant = "normal"                     # Scan 3.1 values: normal killer bt frisian losing (all 10x10)
+book = "false"
+
+[engines.kingsrow_intl_hub]
+enabled = false
+protocol = "hub"                       # "Kingsrow hub" 1.63 - Hub dialect NOT yet verified (see technical-discovery.md)
+executable = "REPLACE/WITH/PATH/TO/kingsrow-hub.exe"
+native_variant = "international-10x10"
+
+# Out of scope under ADR-005 option A (wrong rules for Brazilian; needs a DLL host). Reference only.
+[engines.kingsrow_english]
+enabled = false
+protocol = "cb-dll"                    # CheckerBoard engine DLL (Windows only, in-process API)
+executable = "REPLACE/WITH/PATH/TO/kingsrow64.dll"
+native_variant = "english-8x8"
