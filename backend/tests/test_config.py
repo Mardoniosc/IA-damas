@@ -18,13 +18,13 @@ def test_settings_read_prefixed_environment(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_example_engine_config_is_valid_and_declares_native_variants() -> None:
     engines = load_engine_configs(REPO_ROOT / "config" / "engines.example.toml", environ={})
-    assert set(engines) == {"scan", "kingsrow_intl_hub", "kingsrow_english"}
+    assert set(engines) == {"scan", "kingsrow_intl_hub", "kingsrow_english", "damasai_br"}
     scan = engines["scan"]
     assert scan.protocol == "hub"
     assert scan.args == ("hub",)
     assert scan.params == {"variant": "normal", "book": "false"}
-    # G1 finding encoded in the example: nothing claims Brazilian support.
-    assert all("brazilian" not in e.native_variant for e in engines.values())
+    # G1 finding: no *external* engine claims Brazilian support; only the internal one (G8) does.
+    assert [i for i, e in engines.items() if "brazilian" in e.native_variant] == ["damasai_br"]
     # Placeholder paths are reported as unavailable instead of failing the load.
     assert scan.check_available()
 

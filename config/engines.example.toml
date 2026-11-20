@@ -37,6 +37,20 @@ egdb-wld = "false"                     # default ini points at a db path that us
 book = "false"
 threads = "1"
 
+# The platform's own engine (G8, ADR-010): our code, so it can run anywhere Python runs.
+# One process per variant. The executable is the Python interpreter; PYTHONPATH must reach
+# backend/src.
+[engines.damasai_br]
+enabled = false
+protocol = "hub"
+executable = "REPLACE/WITH/PATH/TO/python.exe"
+args = ["-m", "damas_ai.search.hub"]
+native_variant = "brazilian-8x8"        # the only engine here that plays Brazilian
+env = { PYTHONPATH = "REPLACE/WITH/PATH/TO/backend/src" }
+
+[engines.damasai_br.params]
+variant = "brazilian"
+
 # Out of scope under ADR-005 option A (wrong rules for Brazilian; needs a DLL host). Reference only.
 [engines.kingsrow_english]
 enabled = false

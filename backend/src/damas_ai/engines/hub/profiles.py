@@ -81,7 +81,19 @@ GENERIC = HubProfile(
     ponder=False,
 )
 
-_BY_NAME = {"scan": SCAN, "kingsrow": KINGSROW}
+# The platform's own engine (damas_ai.search.hub, G8). Facts are by construction (our code):
+# eval in hundredths of a man clamped to +/-80.00; wins print as 100 - plies/100; side to move;
+# depth, nodes and move-time limits all honoured; no endgame database.
+DAMASAI = HubProfile(
+    name="damasai",
+    score_unit="men (internal baseline eval)",
+    limits=frozenset({LimitKind.DEPTH, LimitKind.NODES, LimitKind.MOVE_TIME}),
+    ponder=False,
+    perspective="side_to_move",
+    bands=(80.0, 80.0, 100.0),
+)
+
+_BY_NAME = {"scan": SCAN, "kingsrow": KINGSROW, "damasai": DAMASAI}
 
 
 def select_profile(engine_name: str) -> HubProfile:

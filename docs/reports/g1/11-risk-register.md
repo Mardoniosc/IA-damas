@@ -4,7 +4,7 @@ Scale: Likelihood (L) and Impact (I) are 1 (low) to 5 (high). Score = L × I. Re
 
 | ID | Risk | L | I | Score | Mitigation | Gate | Status |
 |---|---|---|---|---|---|---|---|
-| R01 | **No external engine supports Brazilian 8x8**. Multi-engine consensus for Brazilian has no inputs | 5 (realized) | 5 | **25** | ADR-005 option A: framework validated on 10x10; search for Brazilian engines; internal engine (G8); optional Scan port (F7) | G1→G8 | **Open**: mitigation chosen (ADR-005 option A accepted 2026-11-20); residual risk until a Brazilian-valid second source exists |
+| R01 | **No external engine supports Brazilian 8x8**. Multi-engine consensus for Brazilian has no inputs | 5 (realized) | 5 | **25** | ADR-005 option A: framework validated on 10x10; search for Brazilian engines; internal engine (G8); optional Scan port (F7) | G1→G8 | **Open, reduced (G8)**: the internal engine is a first Brazilian source (weak baseline). A second independent Brazilian source is still needed for Brazilian consensus |
 | R02 | Brazilian draw rules unresolved (sources conflict on special endgames) | 4 | 4 | 16 | Ruleset-parameterized draw rules; obtain official CBJD/FMJD text before freezing G2 | G2 | Open |
 | R03 | Rules Core bugs propagate to every gate (ADR-001 makes it the authority) | 1 | 5 | 5 | Done in G2: 19 clause tests; 0 mismatches vs py-draughts on 9,029 positions; perft to depth 9; symmetry property | G2 | **Reduced** (G2): residual = shared misreading or unofficial rules |
 | R04 | Kingsrow terms prohibit intended use (redistribution, service, commercial) | 3 | 4 | 12 | No redistribution (ADR-004); contact author before any such use | G5 | Open |
@@ -23,4 +23,5 @@ Scale: Likelihood (L) and Impact (I) are 1 (low) to 5 (high). Score = L × I. Re
 | R15 | PostgreSQL not installed locally; persistence gates blocked | 2 | 2 | 4 | Introduce in G11 (or Docker image then) | G11 | Accepted |
 | R17 | Kingsrow hub writes ever-growing logs to `%USERPROFILE%\Documents\Ed Gilbert\Kingsrow International\` (≈544 KB per ~3,000 searches), outside the project | 5 | 2 | 10 | Document; periodic cleanup in benchmark runs (G12); no disabling option found | G5/G12 | Open |
 | R18 | Engines silently ignore unsupported search limits (observed: Kingsrow ignores `depth`) | 4 | 4 | 16 | Verified per-engine profiles (ADR-007 amendment); the adapter refuses limits outside the profile | G5 | Mitigated |
+| R21 | The internal engine (an untuned baseline, clearly weaker than Scan/Kingsrow per G8) is mistaken for an authoritative source, especially in Brazilian where it is the only engine | 3 | 4 | 12 | Profile and unit labels ("internal baseline eval"); G8 report quantifies its weakness; outputs carry the engine id; strength tracking in G12 | G8+ | Open |
 | R16 | Learning-system (G14) data contaminated by wrong-rules engine output | 2 | 5 | 10 | Capability gating plus ADR-001 validation; dataset provenance includes `ruleset_id` | G13/G14 | Mitigated by design |

@@ -3,7 +3,8 @@
 
     uvicorn --factory damas_ai.api.app:create_app --host 127.0.0.1 --port 8000
 
-Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7).
+Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7),
+POST /adaptive (G8).
 Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
 serialize concurrent requests per process (ADR-007).
 """
@@ -20,6 +21,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
 import damas_ai
+from damas_ai.adaptive import AdaptiveAnalyzer, EscalationPolicy
+from damas_ai.adaptive.serialize import adaptive_view
 from damas_ai.analysis import EnginePool, MultiEngineAnalyzer
 from damas_ai.analysis.serialize import multi_view
 from damas_ai.config import Settings, load_engine_configs
@@ -57,6 +60,12 @@ class ConsensusBody(AnalysisBody):
     mode: Literal["parallel", "sequential"] = "sequential"  # equal conditions (ADR-008)
     cross_check: Literal["disagreement", "always", "never"] = "disagreement"
     tolerance: float = Field(default=DEFAULT_TOLERANCE, ge=0, le=50)
+
+
+class AdaptiveBody(ConsensusBody):
+    factor: float = Field(default=2.0, gt=1, le=10)
+    max_steps: int = Field(default=3, ge=1, le=6)
+    max_move_time_s: float = Field(default=10.0, gt=0, le=600)
 
 
 def _ruleset(variant: str) -> Ruleset:
@@ -113,6 +122,17 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None)
         request = _build_request(body)
         result = consensus.analyze(request, body.engines, body.mode, body.cross_check, body.tolerance)
         return consensus_view(result, request.position, body.transcript)
+
+    adaptive = AdaptiveAnalyzer(the_pool)
+
+    @app.post("/adaptive")
+    def adaptive_endpoint(body: AdaptiveBody) -> dict[str, Any]:
+        request = _build_request(body)
+        policy = EscalationPolicy(factor=body.factor, max_steps=body.max_steps,
+                                  max_move_time_s=body.max_move_time_s)
+        result = adaptive.analyze(request, body.engines, policy, body.mode, body.cross_check,
+                                  body.tolerance)
+        return adaptive_view(result, request.position, body.transcript)
 
     return app
 

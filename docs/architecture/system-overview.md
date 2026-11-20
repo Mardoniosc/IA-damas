@@ -70,7 +70,8 @@ never authorities.
 | `engines.scan`, `engines.kingsrow` | Engine-specific adapters + capability declarations | G4, G5 |
 | `analysis` | Engine pool, multi-engine fan-out (parallel/sequential), proposals, JSONL batch CLI | **G6 (exists)** |
 | `consensus` | Cross-evaluation, per-engine regret, divergence classes, proof gaps, scale fit (ADR-009) | **G7 (exists)** |
-| `search` | Internal adaptive search | G8 |
+| `search` | Internal alpha-beta engine over the Rules Core, served over Hub (ADR-010) | **G8 (exists)** |
+| `adaptive` | Escalate consensus effort on divergence; trajectories (ADR-010) | **G8 (exists)** |
 | `tactics`, `strategy`, `decision` | Pattern/threat detection, plans, final decision layer | G9-G10 |
 | `kb` | Position knowledge base (PostgreSQL + SQLAlchemy + Alembic) | G11 |
 | `bench` | Matches, tournaments, statistical evaluation | G12 |
