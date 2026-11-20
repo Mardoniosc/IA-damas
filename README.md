@@ -5,11 +5,11 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G7 are complete. Gate G8 (Adaptive Search) is complete and awaiting review**
-> ([G8 report](docs/reports/g8/g8-report.md)). The platform has its own engine, which plays
-> **Brazilian** and International (an untuned baseline, weaker than Scan and Kingsrow).
-> Disagreements between engines are classified (G7) and escalated adaptively (G8).
-> G9 starts only after explicit approval.
+> **Status: G1–G9 complete** (latest: [G9 report](docs/reports/g9/g9-report.md)). The platform has
+> its own engine, which plays **Brazilian** and International (an untuned baseline, weaker than Scan
+> and Kingsrow). Disagreements between engines are classified (G7) and escalated adaptively (G8),
+> and tactics and critical positions are detected (G9). The owner authorized proceeding
+> gate by gate with a commit at the end of each.
 
 ## Key G1 finding (read this first)
 
@@ -36,7 +36,8 @@ backend/                 Python package `damas_ai`
                          consensus/ = cross-evaluation, divergence classes (G7);
                          search/ = internal engine, Hub server (G8);
                          adaptive/ = escalation on divergence (G8);
-                         api/ = local HTTP API (G6-G8)
+                         tactics/ = threats, shots, criticality (G9);
+                         api/ = local HTTP API (G6-G9)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
 config/                  *.example files only; real config is git-ignored

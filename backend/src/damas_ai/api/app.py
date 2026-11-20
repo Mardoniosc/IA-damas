@@ -4,7 +4,7 @@
     uvicorn --factory damas_ai.api.app:create_app --host 127.0.0.1 --port 8000
 
 Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7),
-POST /adaptive (G8).
+POST /adaptive (G8), POST /tactics (G9).
 Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
 serialize concurrent requests per process (ADR-007).
 """
@@ -31,6 +31,8 @@ from damas_ai.consensus.serialize import consensus_view
 from damas_ai.engines import AnalysisRequest, SearchLimit
 from damas_ai.rules import RULESETS, IllegalMoveError, Ruleset, apply_move
 from damas_ai.rules.notation import NotationError, from_fen, parse_move
+from damas_ai.tactics import Thresholds, assess
+from damas_ai.tactics.serialize import criticality_view
 
 
 class LimitBody(BaseModel):
@@ -66,6 +68,16 @@ class AdaptiveBody(ConsensusBody):
     factor: float = Field(default=2.0, gt=1, le=10)
     max_steps: int = Field(default=3, ge=1, le=6)
     max_move_time_s: float = Field(default=10.0, gt=0, le=600)
+
+
+class TacticsBody(BaseModel):
+    variant: str
+    fen: str
+    moves: list[str] = Field(default_factory=list)
+    depth: int = Field(default=6, ge=1, le=10, description="internal engine depth")
+    consensus: bool = Field(default=False, description="add the G7 divergence signal")
+    engines: list[str] | None = None
+    consensus_move_time_s: float = Field(default=0.2, gt=0, le=60)
 
 
 def _ruleset(variant: str) -> Ruleset:
@@ -133,6 +145,18 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None)
         result = adaptive.analyze(request, body.engines, policy, body.mode, body.cross_check,
                                   body.tolerance)
         return adaptive_view(result, request.position, body.transcript)
+
+    @app.post("/tactics")
+    def tactics_endpoint(body: TacticsBody) -> dict[str, Any]:
+        request = _build_request(AnalysisBody(
+            variant=body.variant, fen=body.fen, moves=body.moves,
+            limit=LimitBody(move_time_s=body.consensus_move_time_s), engines=body.engines))
+        divergence, gap = None, False
+        if body.consensus:
+            c = consensus.analyze(request, body.engines)
+            divergence, gap = c.classification.value, c.proof_gap
+        report = assess(request.position, Thresholds(depth=body.depth), divergence, gap)
+        return criticality_view(report)
 
     return app
 
