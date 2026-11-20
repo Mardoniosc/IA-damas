@@ -2,7 +2,8 @@
 
 > **G4 update (2026-11-20):** the real-SCAN column is no longer blocked. Scan 3.1 was built
 > from source and **passed all 8 steps** with this harness (`docs/reports/g4/g4-report.md`
-> §2.1). Kingsrow is still blocked pending a download approval.
+> §2.1). **G5 update:** Kingsrow hub 1.63 also passed all 8 steps (`docs/reports/g5/g5-report.md`
+> §3.1).
 
 ## 1. Summary
 

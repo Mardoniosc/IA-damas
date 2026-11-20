@@ -52,8 +52,28 @@ SCAN = HubProfile(
     bands=(80.0, 90.0, 100.0),
 )
 
-# Anything not verified (e.g. "Kingsrow hub": G1 Q3). Conservative: depth and move-time only,
-# since both are in the base Hub v2 spec; unit and perspective unknown until observed.
+# Kingsrow hub 1.63 (Ed Gilbert), verified in G5:
+# - kr_hub.pdf: "level" implements moves/time/inc/move-time/infinite and NOT depth or nodes.
+#   Observed: 'level depth=6' is silently ignored (searched to depth 14), so depth/nodes must be
+#   refused here rather than sent.
+# - Ponder moves are only returned for 'go think' / 'go ponder' (kr_hub.pdf).
+# - Score: side-to-move perspective (W to move +1.18 / B to move -1.20, same position); about
+#   1.2 per extra man (empirical, NOT calibrated against Scan). Wins print as 40 - plies/100
+#   (39.93 = win in 7 plies, matching Scan's 99.93 on the same position).
+# - Band boundary is EMPIRICAL: over 11,455 info lines no |score| fell in [35, 39.5); evals
+#   stayed below 35. Without an endgame db no db-win band was observed (none encoded).
+KINGSROW = HubProfile(
+    name="kingsrow",
+    score_unit="men (empirical)",
+    limits=frozenset({LimitKind.MOVE_TIME}),
+    ponder=True,
+    perspective="side_to_move",
+    bands=(35.0, 35.0, 40.0),
+)
+
+# Anything not verified. Conservative: depth and move-time, both in the base Hub v2 spec.
+# NOTE (G5): an engine may silently ignore a limit it does not implement (Kingsrow does), so
+# every real engine should get a verified profile before its results are relied upon.
 GENERIC = HubProfile(
     name="generic-hub",
     score_unit="unknown",
@@ -61,6 +81,8 @@ GENERIC = HubProfile(
     ponder=False,
 )
 
+_BY_NAME = {"scan": SCAN, "kingsrow": KINGSROW}
+
 
 def select_profile(engine_name: str) -> HubProfile:
-    return SCAN if engine_name.strip().lower() == "scan" else GENERIC
+    return _BY_NAME.get(engine_name.strip().lower(), GENERIC)

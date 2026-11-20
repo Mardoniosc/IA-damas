@@ -5,9 +5,9 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G3 are complete. Gate G4 (SCAN Integration) is complete and awaiting review**
-> ([G4 report](docs/reports/g4/g4-report.md)). Scan 3.1 is built from source and passes
-> conformance on International 10x10. G5 starts only after explicit approval.
+> **Status: G1–G4 are complete. Gate G5 (KingsRow Integration) is complete and awaiting
+> review** ([G5 report](docs/reports/g5/g5-report.md)). Scan 3.1 and Kingsrow hub 1.63 both
+> pass conformance on International 10x10. G6 starts only after explicit approval.
 
 ## Key G1 finding (read this first)
 

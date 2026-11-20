@@ -4,6 +4,18 @@ Evidence keys (K1…K6) refer to `docs/architecture/technical-discovery.md` §2.
 Investigated 2026-11-20. **No Kingsrow binary was downloaded or executed in G1** (downloads
 need owner approval; none were present locally).
 
+> **G5 update (2026-11-20):** Kingsrow hub 1.63 was downloaded (approved) and run. Its
+> "UNVERIFIED" items are now resolved:
+> - Protocol: Hub 2.1.
+> - `level` supports only move-time and time controls: no depth or nodes, and depth is
+>   silently ignored.
+> - Multi-PV is supported.
+> - Score is from the side to move's point of view, on a scale of about 1.2 per man; wins are
+>   encoded as 40 − plies/100.
+> - 1,500/1,500 conformance.
+>
+> See `docs/reports/g5/g5-report.md`.
+
 ## Which "KingsRow"?
 
 Ed Gilbert publishes three engine lines [K1]:

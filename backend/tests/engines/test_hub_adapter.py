@@ -114,6 +114,15 @@ def test_depth_and_nodes_limits(engine_factory) -> None:  # type: ignore[no-unty
         generic.analyze(req(limit=SearchLimit(nodes=1000)))
 
 
+def test_kingsrow_profile_refuses_depth_instead_of_letting_it_be_ignored(engine_factory) -> None:  # type: ignore[no-untyped-def]
+    """G5: the real Kingsrow hub silently ignores 'level depth'; the adapter must refuse it."""
+    engine = engine_factory("--name", "Kingsrow")
+    assert engine.info.profile == "kingsrow"
+    with pytest.raises(CapabilityError, match="depth"):
+        engine.analyze(req(limit=SearchLimit(depth=6)))
+    assert engine.analyze(req()).status is AnalysisStatus.OK  # move-time works
+
+
 def test_variant_gating_refuses_positions_the_engine_does_not_play(engine_factory) -> None:  # type: ignore[no-untyped-def]
     engine = engine_factory()  # declares international-10x10
     with pytest.raises(CapabilityError, match="brazilian-8x8"):

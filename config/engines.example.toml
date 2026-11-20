@@ -28,9 +28,14 @@ book = "false"
 
 [engines.kingsrow_intl_hub]
 enabled = false
-protocol = "hub"                       # "Kingsrow hub" 1.63 - Hub dialect NOT yet verified (see technical-discovery.md)
-executable = "REPLACE/WITH/PATH/TO/kingsrow-hub.exe"
+protocol = "hub"                       # Kingsrow hub 1.63: Hub 2.1 (verified G5); move-time limits only
+executable = "REPLACE/WITH/PATH/TO/kr_hub.exe"   # from kr_hub_163.zip; no args; CWD = its folder
 native_variant = "international-10x10"
+
+[engines.kingsrow_intl_hub.params]
+egdb-wld = "false"                     # default ini points at a db path that usually does not exist
+book = "false"
+threads = "1"
 
 # Out of scope under ADR-005 option A (wrong rules for Brazilian; needs a DLL host). Reference only.
 [engines.kingsrow_english]
