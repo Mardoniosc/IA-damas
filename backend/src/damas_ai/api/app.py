@@ -4,7 +4,8 @@
     uvicorn --factory damas_ai.api.app:create_app --host 127.0.0.1 --port 8000
 
 Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7),
-POST /adaptive (G8), POST /tactics (G9), POST /decision and POST /strategy (G10).
+POST /adaptive (G8), POST /tactics (G9), POST /decision and POST /strategy (G10),
+GET /kb/stats, GET /kb/positions, GET /kb/positions/{id} (G11).
 Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
 serialize concurrent requests per process (ADR-007).
 """
@@ -32,6 +33,7 @@ from damas_ai.decision import DecisionMaker
 from damas_ai.decision.serialize import decision_view
 from damas_ai.strategy import profile
 from damas_ai.engines import AnalysisRequest, SearchLimit
+from damas_ai.kb import KnowledgeBase
 from damas_ai.rules import RULESETS, IllegalMoveError, Ruleset, apply_move
 from damas_ai.rules.notation import NotationError, from_fen, parse_move
 from damas_ai.tactics import Thresholds, assess
@@ -102,7 +104,8 @@ def _ruleset(variant: str) -> Ruleset:
                              f"{sorted(r.variant for r in RULESETS.values())}")
 
 
-def create_app(settings: Settings | None = None, pool: EnginePool | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, pool: EnginePool | None = None,
+               kb: KnowledgeBase | None = None) -> FastAPI:
     settings = settings or Settings()
     owns_pool = pool is None
     if pool is None:
@@ -110,6 +113,9 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None)
         configs = load_engine_configs(path).values() if path else []
         pool = EnginePool(configs, settings.engine_thread_budget)
     the_pool = pool
+    if kb is None and settings.database_url:
+        kb = KnowledgeBase(settings.database_url)  # schema via `python -m damas_ai.kb migrate`
+    the_kb = kb
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -188,6 +194,29 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None)
         sp = profile(request.position)
         return {"white": asdict(sp.white), "black": asdict(sp.black), "delta": sp.delta(),
                 "notes": sp.notes(), "side_to_move": sp.side_to_move.value}
+
+    def _kb() -> KnowledgeBase:
+        if the_kb is None:
+            raise HTTPException(503, "knowledge base not configured (DAMAS_DATABASE_URL)")
+        return the_kb
+
+    @app.get("/kb/stats")
+    def kb_stats() -> dict[str, Any]:
+        return _kb().stats()
+
+    @app.get("/kb/positions")
+    def kb_positions(variant: str | None = None, tag: str | None = None,
+                     classification: str | None = None, critical: bool | None = None,
+                     limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+        rows = _kb().find(variant, tag, classification, critical, min(max(limit, 1), 500), max(offset, 0))
+        return [asdict(r) for r in rows]
+
+    @app.get("/kb/positions/{position_id}")
+    def kb_position(position_id: int) -> dict[str, Any]:
+        detail = _kb().get(position_id)
+        if detail is None:
+            raise HTTPException(404, "position not found")
+        return detail
 
     return app
 

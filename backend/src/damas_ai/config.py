@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     engines_config: Path | None = None
     # Max sum of engine search threads running at once (None = os.cpu_count()).
     engine_thread_budget: int | None = None
+    # Knowledge base (G11). SQLite by default (local-first); PostgreSQL via a postgresql+... URL.
+    database_url: str | None = None
 
 
 class EngineConfig(BaseModel):

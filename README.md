@@ -5,11 +5,11 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G10 complete** (latest: [G10 report](docs/reports/g10/g10-report.md)). The platform has
+> **Status: G1–G11 complete** (latest: [G11 report](docs/reports/g11/g11-report.md)). The platform has
 > its own engine, which plays **Brazilian** and International (an untuned baseline, weaker than Scan
 > and Kingsrow). Disagreements between engines are classified (G7) and escalated adaptively (G8),
 > tactics and critical positions are detected (G9), and a decision layer recommends
-> a move with confidence (G10). The owner authorized proceeding
+> a move with confidence (G10), and all evidence can be stored and queried in a knowledge base (G11). The owner authorized proceeding
 > gate by gate with a commit at the end of each.
 
 ## Key G1 finding (read this first)
@@ -39,7 +39,8 @@ backend/                 Python package `damas_ai`
                          adaptive/ = escalation on divergence (G8);
                          tactics/ = threats, shots, criticality (G9);
                          strategy/, decision/ = profile, recommended move (G10);
-                         api/ = local HTTP API (G6-G10)
+                         kb/ = knowledge base, Alembic migrations in backend/alembic (G11);
+                         api/ = local HTTP API (G6-G11)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
 config/                  *.example files only; real config is git-ignored
@@ -56,7 +57,8 @@ docs/
 
 ## Quick start (development)
 
-Requirements: Python 3.11+. PostgreSQL, Node/Angular and Docker are **not** needed yet.
+Requirements: Python 3.11+. The knowledge base runs on SQLite by default; PostgreSQL is supported
+by URL but not yet verified. Node/Angular and Docker are not needed yet.
 
 ```bash
 cd backend
@@ -122,7 +124,18 @@ Adaptive analysis (escalates the limit while engines diverge, ADR-010):
 cd backend && python -m damas_ai.adaptive --config ../config/engines.toml --variant international-10x10 --fens ../reports/poc-runs/g6-fens.txt --move-time 0.2 --factor 2 --max-steps 3 --out ../reports/poc-runs/adaptive.jsonl
 ```
 
-Local HTTP API (no authentication; keep it on 127.0.0.1). It reads `DAMAS_ENGINES_CONFIG`:
+Knowledge base (ingest any gate's JSONL, then query):
+
+```bash
+cd backend && python -m damas_ai.kb --db sqlite:///../var/damas_kb.sqlite3 migrate
+```
+
+```bash
+cd backend && python -m damas_ai.kb --db sqlite:///../var/damas_kb.sqlite3 ingest --kind consensus ../reports/poc-runs/consensus.jsonl
+```
+
+Local HTTP API (no authentication; keep it on 127.0.0.1). It reads `DAMAS_ENGINES_CONFIG` and
+`DAMAS_DATABASE_URL`:
 
 ```bash
 cd backend && DAMAS_ENGINES_CONFIG=../config/engines.toml python -m uvicorn --factory damas_ai.api.app:create_app --app-dir src --host 127.0.0.1 --port 8765

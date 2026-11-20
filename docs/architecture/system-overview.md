@@ -75,7 +75,7 @@ never authorities.
 | `tactics` | Threats, forcing-shot detector, criticality report (ADR-011) | **G9 (exists)** |
 | `strategy` | Descriptive strategic profile (ADR-012) | **G10 (exists)** |
 | `decision` | Minimax normalized-regret decision with confidence (ADR-012) | **G10 (exists)** |
-| `kb` | Position knowledge base (PostgreSQL + SQLAlchemy + Alembic) | G11 |
+| `kb` | Knowledge base: SQLAlchemy + Alembic; SQLite verified, PostgreSQL-ready (ADR-013) | **G11 (exists)** |
 | `bench` | Matches, tournaments, statistical evaluation | G12 |
 | `games`, `datasets` | PDN import, game annotation, dataset builds | G13 |
 | `learning` | Training/evaluation pipelines (PyTorch, optional) | G14 |
@@ -92,7 +92,7 @@ gate's report:
 | pytest, pytest-cov | G1 (dev) | tests |
 | ruff | G2 (dev) | lint/format |
 | FastAPI + uvicorn (+ httpx dev) | **G6 (added)** | HTTP API |
-| SQLAlchemy, Alembic, psycopg | G11 (or earlier if persistence of analyses is required in G6-G7) | knowledge base |
+| SQLAlchemy, Alembic | **G11 (added)** | knowledge base; psycopg + PostgreSQL server pending owner approval |
 | PostgreSQL server | same as above | **not installed on the dev machine today** (`psql` not found, 2026-11-20) |
 | Angular | G6/G15 | UI |
 | Redis, Docker, PyTorch | only if a measured need appears | |

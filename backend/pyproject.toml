@@ -10,12 +10,14 @@ readme = "../README.md"
 requires-python = ">=3.11"
 # Dependencies are added in the gate that first needs them (system-overview.md,
 # "Dependency introduction policy"). G6 added FastAPI (HTTP API) and uvicorn (to serve it).
-# SQLAlchemy, Alembic and PostgreSQL drivers come with persistence (G11 or earlier if needed).
+# G11 added SQLAlchemy + Alembic. A PostgreSQL driver (psycopg) is added once a server is approved.
 dependencies = [
   "pydantic>=2.12,<3",
   "pydantic-settings>=2.11,<3",
   "fastapi>=0.140,<1",
   "uvicorn>=0.52,<1",
+  "sqlalchemy>=2.0.44,<3",  # G11 knowledge base
+  "alembic>=1.17,<2",
 ]
 
 [project.optional-dependencies]
