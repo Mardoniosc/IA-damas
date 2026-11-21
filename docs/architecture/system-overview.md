@@ -79,7 +79,7 @@ never authorities.
 | `bench` | Rules-Core-arbitrated games, paired openings, Elo with intervals, PDN (ADR-014) | **G12 (exists)** |
 | `games` | PDN replay, move analysis, self-play, leakage-controlled datasets (ADR-015) | **G13 (exists)** |
 | `learning` | Outcome models (linear, residual, MLP), pluggable search evaluator, match-based adoption (ADR-016) | **G14 (exists)** |
-| `api` | FastAPI app: health, variants, engines, analyses (local only, ADR-008) | **G6 (exists)** |
+| `api` | FastAPI app: analyses, consensus, adaptive, tactics, decision, strategy, kb (local only, ADR-008) | **G6–G11 (exists)** |
 
 ## 5. Dependency introduction policy
 

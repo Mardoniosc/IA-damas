@@ -10,9 +10,16 @@
       ],
       "env": {
         "DAMAS_ENGINES_CONFIG": "config/engines.toml",
+        "DAMAS_DATABASE_URL": "sqlite:///var/damas_kb.sqlite3",
         "DAMAS_LOG_LEVEL": "INFO"
       },
       "port": 8765
+    },
+    {
+      "name": "damas-ui",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend/damas-ui", "start"],
+      "port": 4200
     }
   ]
 }

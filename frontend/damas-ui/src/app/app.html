@@ -1,0 +1,149 @@
+<header>
+  <h1>Damas Super AI</h1>
+  <p class="sub">Analysis workbench. Engines are advisors; the Rules Core decides legality.</p>
+</header>
+
+<main>
+  <section class="controls">
+    <label>
+      Variant
+      <select [ngModel]="variant()" (ngModelChange)="setVariant($event)" name="variant">
+        @for (v of variants(); track v.variant) {
+          <option [value]="v.variant">{{ v.variant }}{{ v.provisional ? ' (provisional rules)' : '' }}</option>
+        } @empty {
+          <option value="brazilian-8x8">brazilian-8x8</option>
+          <option value="international-10x10">international-10x10</option>
+        }
+      </select>
+    </label>
+    <label class="wide">
+      Position (PDN FEN)
+      <input [ngModel]="fen()" (ngModelChange)="fen.set($event); clear()" name="fen" />
+    </label>
+    <label>
+      Time per move (s)
+      <input type="number" min="0.05" step="0.05" [ngModel]="moveTime()" (ngModelChange)="moveTime.set(+$event)" name="mt" />
+    </label>
+    <label>
+      Internal depth
+      <input type="number" min="1" max="10" [ngModel]="depth()" (ngModelChange)="depth.set(+$event)" name="depth" />
+    </label>
+    <button type="button" (click)="analyse()" [disabled]="!!busy() || !board()">
+      {{ busy() ? 'Running ' + busy() + '…' : 'Analyse' }}
+    </button>
+  </section>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (variantInfo(); as info) {
+    @if (!info.engines.length) {
+      <p class="warn">No engine is configured for {{ info.variant }}: external analysis is unavailable.</p>
+    } @else if (info.engines.length === 1) {
+      <p class="warn">Only one engine plays {{ info.variant }} ({{ info.engines[0] }}): decisions are single-source, so confidence is capped at "low".</p>
+    }
+  }
+
+  <div class="layout">
+    <section class="board-panel" aria-label="board">
+      @if (board(); as b) {
+        <svg [attr.viewBox]="'0 0 ' + size() * 50 + ' ' + size() * 50" class="board" role="img"
+             [attr.aria-label]="'board, ' + (b.sideToMove === 'W' ? 'White' : 'Black') + ' to move'">
+          @for (rank of cells(); track rank) {
+            @for (file of cells(); track file) {
+              <rect [attr.x]="squareX(file)" [attr.y]="squareY(rank)" width="50" height="50"
+                    [class.dark]="(file + rank) % 2 === 0" [class.light]="(file + rank) % 2 === 1" />
+            }
+          }
+          @for (s of b.squares; track s.number) {
+            @if (highlighted().has(s.number)) {
+              <rect class="hl" [attr.x]="squareX(s.file) + 2" [attr.y]="squareY(s.rank) + 2" width="46" height="46" />
+            }
+            <text class="num" [attr.x]="squareX(s.file) + 3" [attr.y]="squareY(s.rank) + 11">{{ s.number }}</text>
+            @if (s.piece) {
+              <circle [attr.cx]="squareX(s.file) + 25" [attr.cy]="squareY(s.rank) + 25" r="18"
+                      [class.white]="s.piece === 'w' || s.piece === 'W'" [class.black]="s.piece === 'b' || s.piece === 'B'" />
+              @if (s.piece === 'W' || s.piece === 'B') {
+                <text class="king" [attr.x]="squareX(s.file) + 25" [attr.y]="squareY(s.rank) + 31">K</text>
+              }
+            }
+          }
+        </svg>
+        <p class="caption">{{ b.sideToMove === 'W' ? 'White' : 'Black' }} to move</p>
+      } @else {
+        <p class="error">Invalid FEN for {{ variant() }}.</p>
+      }
+    </section>
+
+    <section class="results">
+      @if (decision(); as d) {
+        <article>
+          <h2>Decision</h2>
+          <p class="move">
+            {{ d.move?.numeric ?? '—' }}
+            <span class="alg">{{ d.move?.algebraic }}</span>
+            <span class="badge" [attr.data-level]="d.confidence">confidence: {{ d.confidence }}</span>
+          </p>
+          <ul>
+            @for (r of d.reasons; track r) { <li>{{ r }}</li> }
+          </ul>
+          @if (d.candidates.length) {
+            <table>
+              <thead><tr><th>Candidate</th><th>Sources</th><th>Normalized regret by engine (1.0 = one tolerance)</th><th>Vetoed</th></tr></thead>
+              <tbody>
+                @for (c of d.candidates; track c.move.numeric) {
+                  <tr [class.chosen]="c.move.numeric === d.move?.numeric">
+                    <td>{{ c.move.numeric }}</td>
+                    <td>{{ c.sources.join(', ') }}</td>
+                    <td>@for (e of regretList(c); track e.engine) { <span class="chip">{{ e.engine }}: {{ e.value }}</span> }</td>
+                    <td>{{ c.vetoed_by.join(', ') || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @for (n of d.notes; track n) { <p class="note">{{ n }}</p> }
+        </article>
+      }
+
+      @if (tactics(); as t) {
+        <article>
+          <h2>Tactics and criticality</h2>
+          <p>{{ t.critical ? 'Critical position' : 'Not flagged as critical' }}</p>
+          <ul>@for (r of t.reasons; track r) { <li>{{ r }}</li> }</ul>
+          @if (t.shots.length) {
+            <p>Best forcing line: <code>{{ t.shots[0].line.join(' ') }}</code> (+{{ t.shots[0].gain_men }} men{{ t.shots[0].sacrifice ? ', sacrifice' : '' }})</p>
+          }
+          <p class="note">{{ t.source }}</p>
+        </article>
+      }
+
+      @if (strategy(); as s) {
+        <article>
+          <h2>Strategic profile (descriptive)</h2>
+          <ul>@for (n of s.notes; track n) { <li>{{ n }}</li> } @empty { <li>No differences between the sides.</li> }</ul>
+        </article>
+      }
+
+      <article>
+        <h2>Engines</h2>
+        <table>
+          <thead><tr><th>Id</th><th>Variant</th><th>Running</th><th>Engine</th><th>Profile</th></tr></thead>
+          <tbody>
+            @for (e of engines(); track e.engine_id) {
+              <tr><td>{{ e.engine_id }}</td><td>{{ e.native_variant }}</td><td>{{ e.running ? 'yes' : 'no' }}</td>
+                  <td>{{ e.name ?? '—' }} {{ e.version ?? '' }}</td><td>{{ e.profile ?? '—' }}</td></tr>
+            } @empty { <tr><td colspan="5">No engines configured.</td></tr> }
+          </tbody>
+        </table>
+      </article>
+
+      @if (kb(); as k) {
+        <article>
+          <h2>Knowledge base</h2>
+          <p>{{ k.positions }} positions · {{ k.games }} games · {{ k.engine_analyses }} engine analyses · {{ k.consensus_records }} consensus records</p>
+        </article>
+      }
+    </section>
+  </div>
+</main>

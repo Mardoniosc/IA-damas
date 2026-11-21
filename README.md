@@ -5,7 +5,8 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G14 complete** (latest: [G14 report](docs/reports/g14/g14-report.md)). The platform has
+> **Status: G1–G15 delivered** (final: [G15 report](docs/reports/g15/g15-report.md), [traceability](docs/reports/g15/traceability.md)).
+> The Angular UI source exists but is **not built yet** (npm install pending approval). The platform has
 > its own engine, which plays **Brazilian** and International (an untuned baseline, weaker than Scan
 > and Kingsrow). Disagreements between engines are classified (G7) and escalated adaptively (G8),
 > tactics and critical positions are detected (G9), and a decision layer recommends
@@ -47,7 +48,7 @@ backend/                 Python package `damas_ai`
                          learning/ = value models, learned evaluators, match-based adoption (G14);
                          api/ = local HTTP API (G6-G11)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
-frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
+frontend/damas-ui/       Angular 21 workbench (G15; dependencies not installed yet, see frontend/README.md)
 config/                  *.example files only; real config is git-ignored
 scripts/poc/             G1 proof-of-concept (superseded by damas_ai.engines; kept as a record)
 scripts/oracle/          dev-only: regenerates Rules Core reference data with py-draughts (GPL, ADR-004)
