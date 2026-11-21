@@ -1,7 +1,7 @@
 # G15 report — Super AI Interface & Final Validation
 
-Gate: **G15** · Date: 2026-11-21 · Status: **final validation complete; interface source written
-but NOT built or browser-verified** (npm dependencies need the owner's download approval).
+Gate: **G15** · Date: 2026-11-21 · Status: **complete**. The interface was built and verified in the
+browser after the owner approved `npm install` (see §1.1).
 Design: ADR-017. Capability-by-capability traceability: [traceability.md](traceability.md).
 
 ## 1. Interface (`frontend/damas-ui`, Angular 21)
@@ -14,6 +14,19 @@ Design: ADR-017. Capability-by-capability traceability: [traceability.md](tracea
 | Dev proxy `/api` → `127.0.0.1:8765`; launch configs (`.claude/launch.json`: `damas-api`, `damas-ui`) | done |
 | `npm install --offline` | **failed**: the cache lacks packages (`@babel/helper-annotate-as-pure` first). A registry download needs approval |
 | Build, browser verification | **pending** |
+
+### 1.1 Interface build and browser verification (after approval, 2026-11-21)
+
+| Check | Result |
+|---|---|
+| `npm install` | 470 packages, 278 MB. Install scripts of 4 packages blocked by npm 11 and **not approved**; not needed |
+| `ng build` | OK, 193 kB initial / 54 kB transferred, no warnings |
+| `ng test` (Vitest) | 3/3 board-model tests pass (numbering a1 = 29 on 8x8, a1 = 46 on 10x10, FEN parsing, move squares) |
+| Browser, Brazilian start | decision `22-17` (c3-b4) highlighted, **low** confidence with the single-source reason and warning, tactics and strategy panels, KB counts |
+| Browser, International start | variant switch to a 10x10 board; decision `34-30` (h4-i5), **high** confidence, accepted by 3/3 engines, per-engine regret table |
+| Server logs (API and UI) | no errors |
+| Phone-width layout | **not verified** (browser pane closed) |
+| Observation | the `volatile` criticality flag also fires on start positions at depth 5: the known G9 noise, now visible in the UI |
 
 ### Backend side of the interface: verified end to end over HTTP (uvicorn, real engines, real KB)
 
@@ -49,8 +62,7 @@ benchmarks, datasets and learning infrastructure. Every Brazilian decision, howe
 
 ## 4. Open items (owner decisions or external inputs)
 
-1. Approve `npm install` for `frontend/damas-ui` (registry download), then build and verify in
-   the browser.
+1. ~~Approve `npm install`~~: done 2026-11-21; UI built and verified.
 2. Provide or approve a second, independent Brazilian engine (discovery item).
 3. Provide the official CBJD (or FMJD draughts-64) rules text: draw rules and numbering are
    provisional.
@@ -63,6 +75,6 @@ benchmarks, datasets and learning infrastructure. Every Brazilian decision, howe
 
 | Criterion | Status |
 |---|---|
-| Interface over the platform's capabilities | **source complete; not built or verified** (blocked on approval) |
+| Interface over the platform's capabilities | **met**: built, unit-tested, browser-verified on both variants (phone layout not verified) |
 | Final validation of the whole system | **met** (all suites green, real engines included) |
 | Traceability of the vision to evidence | **met** (traceability.md) |

@@ -8,10 +8,15 @@ already installed on the development machine (`ng new --skip-install`).
 - Source written: board model (`src/app/board.ts`), API client (`api.service.ts`), workbench
   page (`app.ts` / `app.html` / `app.css`), unit tests for the board model (`app.spec.ts`), and
   a dev-server proxy (`proxy.conf.json`: `/api` → `http://127.0.0.1:8765`).
-- **Dependencies are not installed yet.** `npm install --offline` failed because the local npm
-  cache does not hold every package (first miss: `@babel/helper-annotate-as-pure`). Installing
-  downloads packages from `registry.npmjs.org`, which needs the owner's approval.
-  **Until then the UI is neither built nor verified in a browser.**
+- Dependencies installed with the owner's approval (2026-11-21): `npm install` (470 packages,
+  278 MB, `package-lock.json` committed). npm 11 blocked the install scripts of 4 packages
+  (esbuild, lmdb, msgpackr-extract, @parcel/watcher). They were **not** approved, and the build and
+  tests work without them.
+- `ng build`: OK (193 kB initial, 54 kB transferred), no warnings. `ng test`: 3/3 board-model tests pass.
+- Verified in the browser against the live backend (real engines + KB): Brazilian analysis
+  (`22-17`, confidence low, single-source warning, move highlighted) and International analysis
+  (`34-30`, confidence high, accepted by 3/3 engines, regret table). No server errors.
+  **Not verified:** the layout at phone width (the browser pane was closed before that check).
 
 ## Run (after `npm install`)
 

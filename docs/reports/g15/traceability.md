@@ -44,7 +44,7 @@ Date: 2026-11-20. Every row cites where the claim is implemented and where it is
 | FastAPI | local HTTP API (G6–G11) |
 | SQLAlchemy + Alembic | knowledge base (G11, G13 migration) |
 | **PostgreSQL** | **not verified**: no server or driver installed (needs owner approval) |
-| **Angular + TypeScript** | workspace and UI source written (G15); **not built or browser-verified**: npm dependencies need a download approval |
+| Angular + TypeScript | workbench built, unit-tested and browser-verified (G15) |
 | PyTorch | MLP comparison in G14 (CUDA available) |
 | Redis, Docker | not introduced (no measured need) |
 
@@ -52,7 +52,7 @@ Date: 2026-11-20. Every row cites where the claim is implemented and where it is
 
 1. A **second, independent Brazilian engine**: Brazilian consensus and decisions stay single-source (R01).
 2. **Official Brazilian rules text** (CBJD/FMJD): draw rules and numbering are provisional (R02, R14).
-3. **npm dependency install** for the Angular UI (owner approval for downloads).
+3. ~~npm dependency install~~: approved and done; UI verified.
 4. **PostgreSQL** verification (R22).
 5. **Kingsrow terms** for anything beyond local use (Q5, R04).
 6. **API authentication** before any non-local deployment (R19).
