@@ -31,6 +31,14 @@ export class ApiService {
   strategy(variant: string, fen: string): Observable<any> {
     return this.http.post(`${this.base}/strategy`, { variant, fen });
   }
+  parseGames(pdn: string, variant?: string | null): Observable<any> {
+    return this.http.post(`${this.base}/games/parse`, { pdn, variant: variant || null });
+  }
+  analyzeGame(pdn: string, index: number, engine: string | null, depth: number, variant?: string | null): Observable<any> {
+    return this.http.post(`${this.base}/games/analyze`, {
+      pdn, index, engine: engine || null, limit: { depth }, variant: variant || null,
+    });
+  }
   kbStats(): Observable<any> {
     return this.http.get(`${this.base}/kb/stats`);
   }

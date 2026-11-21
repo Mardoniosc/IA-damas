@@ -5,7 +5,8 @@
 
 Endpoints: GET /health, GET /variants, GET /engines, POST /analyses, POST /consensus (G7),
 POST /adaptive (G8), POST /tactics (G9), POST /decision and POST /strategy (G10),
-GET /kb/stats, GET /kb/positions, GET /kb/positions/{id} (G11).
+GET /kb/stats, GET /kb/positions, GET /kb/positions/{id} (G11), POST /games/parse and
+POST /games/analyze (game review).
 Analysis endpoints are synchronous (FastAPI runs them in its worker thread pool); engines
 serialize concurrent requests per process (ADR-007).
 """
@@ -26,6 +27,7 @@ from damas_ai.adaptive import AdaptiveAnalyzer, EscalationPolicy
 from damas_ai.adaptive.serialize import adaptive_view
 from damas_ai.analysis import EnginePool, MultiEngineAnalyzer
 from damas_ai.analysis.serialize import multi_view
+from damas_ai.api.games import games_router
 from damas_ai.config import Settings, load_engine_configs
 from damas_ai.consensus import DEFAULT_TOLERANCE, ConsensusAnalyzer
 from damas_ai.consensus.serialize import consensus_view
@@ -124,6 +126,7 @@ def create_app(settings: Settings | None = None, pool: EnginePool | None = None,
             the_pool.close()
 
     app = FastAPI(title="Damas Super AI", version=damas_ai.__version__, lifespan=lifespan)
+    app.include_router(games_router(the_pool))  # game review (PDN upload + analysis)
     analyzer = MultiEngineAnalyzer(the_pool)
 
     @app.get("/health")

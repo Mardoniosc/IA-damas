@@ -1,0 +1,33 @@
+section { margin: 12px 0; }
+.file { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+textarea { width: 100%; box-sizing: border-box; font: 12px monospace; margin: 6px 0; }
+.table-wrap { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+tbody tr { cursor: pointer; }
+tr.sel td { background: var(--chip); font-weight: 600; }
+tr.bad td { color: #b3261e; cursor: default; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; font-size: 13px; }
+.controls label { display: flex; flex-direction: column; color: var(--muted); font-size: 12px; gap: 4px; }
+.players { display: flex; flex-wrap: wrap; gap: 10px; }
+.card { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); font-size: 13px; }
+.review { display: grid; grid-template-columns: minmax(260px, 440px) 1fr; gap: 20px; }
+@media (max-width: 860px) { .review { grid-template-columns: 1fr; } }
+.nav { display: flex; gap: 6px; align-items: center; justify-content: center; margin: 6px 0; }
+.nav button { padding: 4px 10px; }
+.now { font-size: 14px; line-height: 1.5; }
+.bestmv { color: #2e9e4f; }
+.legend { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.sw { display: inline-block; width: 12px; height: 12px; border: 3px solid var(--accent); }
+.sw.best { border-color: #2e9e4f; border-style: dashed; }
+.moves .n { color: var(--muted); width: 36px; }
+.mv { font: inherit; background: none; border: 0; padding: 1px 6px; border-radius: 4px; color: var(--text); cursor: pointer; }
+.mv.cur { outline: 2px solid var(--accent); }
+.lbl { padding: 1px 6px; border-radius: 8px; font-size: 12px; }
+.inaccuracy { background: #fff1c2; color: #6b4e00; }
+.mistake { background: #ffd9b0; color: #7a3d00; }
+.blunder { background: #f8d7d5; color: #7a1d17; }
+.right { max-height: 640px; overflow: auto; }
+.caveats { font-size: 12px; color: var(--muted); }
+.error { color: #b3261e; }
+.note { color: var(--muted); font-size: 13px; }

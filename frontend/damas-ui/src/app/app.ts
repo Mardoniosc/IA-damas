@@ -4,16 +4,19 @@ import { firstValueFrom } from 'rxjs';
 
 import { ApiService } from './api.service';
 import { BOARD_SIZE, START_FEN, moveSquares, parseFen } from './board';
+import { BoardView } from './board-view';
+import { GameReview } from './game-review';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
+  imports: [FormsModule, BoardView, GameReview],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
   private readonly api = inject(ApiService);
 
+  readonly tab = signal<'position' | 'review'>('position');
   readonly variant = signal('brazilian-8x8');
   readonly fen = signal(START_FEN['brazilian-8x8']);
   readonly moveTime = signal(0.2);
@@ -29,7 +32,6 @@ export class App {
   readonly error = signal<string | null>(null);
 
   readonly size = computed(() => BOARD_SIZE[this.variant()] ?? 8);
-  readonly cells = computed(() => Array.from({ length: this.size() }, (_, i) => i));
   readonly board = computed(() => {
     try {
       return parseFen(this.fen(), this.size());
@@ -37,7 +39,7 @@ export class App {
       return null;
     }
   });
-  readonly highlighted = computed(() => new Set(moveSquares(this.decision()?.move?.numeric)));
+  readonly highlighted = computed(() => moveSquares(this.decision()?.move?.numeric));
   readonly variantInfo = computed(() => this.variants().find((v) => v.variant === this.variant()));
 
   constructor() {
@@ -88,13 +90,6 @@ export class App {
       engine,
       value: v === null || v === undefined ? 'n/a' : Number(v).toFixed(2),
     }));
-  }
-
-  squareX(file: number): number {
-    return file * 50;
-  }
-  squareY(rank: number): number {
-    return (this.size() - 1 - rank) * 50;
   }
 
   private async run(label: string, fn: () => Promise<void>): Promise<void> {

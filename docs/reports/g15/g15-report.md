@@ -40,6 +40,25 @@ Design: ADR-017. Capability-by-capability traceability: [traceability.md](tracea
 | `GET /kb/stats` | 29,114 positions, 444 games |
 | Terminal position | 422 |
 
+### 1.2 Game review screen (added after G15 at the owner's request, 2026-11-21)
+
+A second tab, **Game review**, analyses whole games exported by other sites (the owner's
+PlayOK file was the driver). New backend routes: `POST /games/parse` (lists the games in a PDN
+text, with a replay status per game) and `POST /games/analyze` (replays one game through the
+Rules Core and judges every ply with one engine, reusing the G13 `analyze_game`). New UI
+components: `BoardView` (shared board, played move framed in blue, engine's preferred move
+dashed in green) and `GameReview` (file upload or paste, games table, judge engine and depth,
+per-player accuracy and inaccuracy/mistake/blunder counts, board with first/previous/next/last
+and arrow keys, move list coloured by label, caveats).
+
+| Check | Result |
+|---|---|
+| Backend tests | `tests/games/test_games_api.py` 4/4 (parse status, per-ply review with positions and algebraic moves, error cases, unknown GameType needs a variant override); API-related suites 63/63 |
+| Rules fix found by the owner's file | 2 of 28 PlayOK games did not replay: PlayOK writes a different but equivalent king capture route (`g1xd4xa7` for `g1xe3xa7`). `parse_move` now matches a full written path by move identity (commit `87f6c20`); 28/28 replay |
+| `ng build` / `ng test` | OK, 210 kB initial / 58.5 kB transferred; 3/3 |
+| Browser | PlayOK games pasted and loaded (84 and 60 plies, ok); game analysed with `damasai_br` depth 5 in a few seconds; summary cards, labels, navigation and both highlights checked (e.g. 12… c5-d4 blunder, engine prefers e7-f6, costs 1.68 men) |
+| Limits | one judge only (the weak internal engine on Brazilian), provisional label thresholds and Brazilian draw rules: all shown on screen as caveats. Personal game files are not stored in the repository |
+
 ## 2. Final validation (2026-11-21)
 
 | Suite | Result |

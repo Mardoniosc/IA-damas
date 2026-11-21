@@ -3,7 +3,12 @@
   <p class="sub">Analysis workbench. Engines are advisors; the Rules Core decides legality.</p>
 </header>
 
-<main>
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" [class.on]="tab() === 'position'" (click)="tab.set('position')">Position analysis</button>
+  <button type="button" role="tab" [class.on]="tab() === 'review'" (click)="tab.set('review')">Game review</button>
+</nav>
+
+<main [hidden]="tab() !== 'position'">
   <section class="controls">
     <label>
       Variant
@@ -46,30 +51,8 @@
 
   <div class="layout">
     <section class="board-panel" aria-label="board">
-      @if (board(); as b) {
-        <svg [attr.viewBox]="'0 0 ' + size() * 50 + ' ' + size() * 50" class="board" role="img"
-             [attr.aria-label]="'board, ' + (b.sideToMove === 'W' ? 'White' : 'Black') + ' to move'">
-          @for (rank of cells(); track rank) {
-            @for (file of cells(); track file) {
-              <rect [attr.x]="squareX(file)" [attr.y]="squareY(rank)" width="50" height="50"
-                    [class.dark]="(file + rank) % 2 === 0" [class.light]="(file + rank) % 2 === 1" />
-            }
-          }
-          @for (s of b.squares; track s.number) {
-            @if (highlighted().has(s.number)) {
-              <rect class="hl" [attr.x]="squareX(s.file) + 2" [attr.y]="squareY(s.rank) + 2" width="46" height="46" />
-            }
-            <text class="num" [attr.x]="squareX(s.file) + 3" [attr.y]="squareY(s.rank) + 11">{{ s.number }}</text>
-            @if (s.piece) {
-              <circle [attr.cx]="squareX(s.file) + 25" [attr.cy]="squareY(s.rank) + 25" r="18"
-                      [class.white]="s.piece === 'w' || s.piece === 'W'" [class.black]="s.piece === 'b' || s.piece === 'B'" />
-              @if (s.piece === 'W' || s.piece === 'B') {
-                <text class="king" [attr.x]="squareX(s.file) + 25" [attr.y]="squareY(s.rank) + 31">K</text>
-              }
-            }
-          }
-        </svg>
-        <p class="caption">{{ b.sideToMove === 'W' ? 'White' : 'Black' }} to move</p>
+      @if (board()) {
+        <app-board-view [fen]="fen()" [size]="size()" [played]="highlighted()" />
       } @else {
         <p class="error">Invalid FEN for {{ variant() }}.</p>
       }
@@ -146,4 +129,8 @@
       }
     </section>
   </div>
+</main>
+
+<main [hidden]="tab() !== 'review'">
+  <app-game-review [engines]="engines()" />
 </main>

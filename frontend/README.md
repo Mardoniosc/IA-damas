@@ -18,6 +18,13 @@ already installed on the development machine (`ng new --skip-install`).
   (`34-30`, confidence high, accepted by 3/3 engines, regret table). No server errors.
   **Not verified:** the layout at phone width (the browser pane was closed before that check).
 
+- **Game review tab** (added 2026-11-21): load a PDN file (e.g. a PlayOK `.txt` export) or paste
+  PDN text, pick a game, a judge engine and a depth, and step through the game with each move
+  labelled (inaccuracy / mistake / blunder) and the engine's preferred move shown on the board.
+  Components: `board-view.ts` (shared board), `game-review.ts/.html/.css`. Backend routes:
+  `POST /games/parse`, `POST /games/analyze`. Verified in the browser with real PlayOK games.
+- Shared form styles (`input`, `select`, `textarea`, `button`) live in `src/styles.css`.
+
 ## Run (after `npm install`)
 
 ```bash

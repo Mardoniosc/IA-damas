@@ -1,0 +1,104 @@
+<section class="load">
+  <label class="file">
+    PDN file (.txt / .pdn, e.g. a PlayOK export)
+    <input type="file" accept=".txt,.pdn,text/plain" (change)="onFile($event)" />
+  </label>
+  <details>
+    <summary>…or paste PDN text</summary>
+    <textarea rows="6" [ngModel]="pdn()" (ngModelChange)="pdn.set($event)" name="pdn"
+              placeholder='[GameType "26"] 1. c3-b4 f6-g5 ...'></textarea>
+    <button type="button" (click)="load()" [disabled]="!pdn().trim() || !!busy()">Load games</button>
+  </details>
+  @if (busy()) { <p class="note">{{ busy() }}…</p> }
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+</section>
+
+@if (games().length) {
+  <section class="games">
+    <h2>Games{{ fileName() ? ' in ' + fileName() : '' }} ({{ games().length }})</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>White</th><th>Black</th><th>Result</th><th>Date</th><th>Plies</th><th>Status</th></tr></thead>
+        <tbody>
+          @for (g of games(); track g.index) {
+            <tr [class.sel]="g.index === selected()" [class.bad]="!g.ok" (click)="g.ok && choose(g.index)">
+              <td>{{ g.index + 1 }}</td><td>{{ g.white }}</td><td>{{ g.black }}</td><td>{{ g.result }}</td>
+              <td>{{ g.date ?? '' }}</td><td>{{ g.plies }}</td>
+              <td>{{ g.ok ? 'ok' : g.error }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}
+
+@if (selectedGame(); as g) {
+  <section class="controls">
+    <span>Game {{ g.index + 1 }}: {{ g.white }} vs {{ g.black }} ({{ g.result }})</span>
+    <label>Judge engine
+      <select [ngModel]="engine()" (ngModelChange)="engine.set($event)" name="engine">
+        @for (e of variantEngines(); track e.engine_id) { <option [value]="e.engine_id">{{ e.engine_id }}</option> }
+        @empty { <option value="">none for {{ g.variant }}</option> }
+      </select>
+    </label>
+    <label>Depth <input type="number" min="1" max="12" [ngModel]="depth()" (ngModelChange)="depth.set(+$event)" name="depth" /></label>
+    <button type="button" (click)="analyse()" [disabled]="!!busy() || !variantEngines().length">Analyse game</button>
+  </section>
+}
+
+@if (review(); as r) {
+  <section class="players">
+    @for (p of players(); track p.name) {
+      <div class="card">
+        <strong>{{ p.name }}</strong>
+        <span>accuracy {{ (p.s.accuracy * 100).toFixed(1) }}%</span>
+        <span class="lbl inaccuracy">{{ p.s.inaccuracy }} inaccuracies</span>
+        <span class="lbl mistake">{{ p.s.mistake }} mistakes</span>
+        <span class="lbl blunder">{{ p.s.blunder }} blunders</span>
+      </div>
+    }
+  </section>
+
+  <div class="review">
+    <div class="left">
+      <app-board-view [fen]="fen()" [size]="size()" [played]="playedSquares()" [best]="bestSquares()" />
+      <div class="nav">
+        <button type="button" (click)="go(0)" aria-label="first">⏮</button>
+        <button type="button" (click)="go(ply() - 1)" aria-label="previous">◀</button>
+        <span>{{ ply() }} / {{ plies().length }}</span>
+        <button type="button" (click)="go(ply() + 1)" aria-label="next">▶</button>
+        <button type="button" (click)="go(plies().length)" aria-label="last">⏭</button>
+      </div>
+      @if (current(); as c) {
+        <p class="now">
+          {{ c.move_number }}{{ c.side === 'W' ? '.' : '…' }} <strong>{{ c.played.algebraic }}</strong> ({{ c.played.numeric }})
+          by {{ c.player }} — <span class="lbl" [class]="'lbl ' + c.label">{{ c.label }}</span>
+          @if (c.best && c.best.numeric !== c.played.numeric) {
+            <br />engine prefers <strong class="bestmv">{{ c.best.algebraic ?? c.best.numeric }}</strong>
+            @if (c.throws_away_proven_result) { (the move played throws away a proven result) }
+            @else if (c.regret_men !== null) { (costs {{ c.regret_men }} men) }
+          }
+          @if (c.forced) { <br /><em>only legal move</em> }
+        </p>
+      } @else {
+        <p class="now">Final position · result {{ r.game.result }}</p>
+      }
+      <p class="legend"><span class="sw played"></span> move played <span class="sw best"></span> engine's preferred move</p>
+    </div>
+    <div class="right">
+      <table class="moves">
+        <tbody>
+          @for (row of rows(); track row.n + '-' + row.wi + '-' + row.bi) {
+            <tr>
+              <td class="n">{{ row.n }}.</td>
+              <td>@if (row.w) { <button type="button" [class]="'mv ' + row.w.label + (row.wi === ply() ? ' cur' : '')" (click)="go(row.wi)">{{ row.w.played.algebraic }}</button> }</td>
+              <td>@if (row.b) { <button type="button" [class]="'mv ' + row.b.label + (row.bi === ply() ? ' cur' : '')" (click)="go(row.bi)">{{ row.b.played.algebraic }}</button> }</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <ul class="caveats">@for (c of r.caveats; track c) { <li>{{ c }}</li> }</ul>
+    </div>
+  </div>
+}
