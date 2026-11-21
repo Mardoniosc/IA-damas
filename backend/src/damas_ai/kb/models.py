@@ -17,7 +17,7 @@ from typing import Any
 from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-SCHEMA_VERSION = "0001"
+SCHEMA_VERSION = "0002"
 
 
 def utcnow() -> datetime:
@@ -138,3 +138,35 @@ class TagRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     position: Mapped[PositionRow] = relationship(back_populates="tags")
+
+
+class GameRow(Base):
+    """A game (G13): PDN text plus metadata; positions linked through ``game_positions``."""
+
+    __tablename__ = "games"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(String(200))
+    event: Mapped[str | None] = mapped_column(String(200))
+    white: Mapped[str] = mapped_column(String(100), index=True)
+    black: Mapped[str] = mapped_column(String(100), index=True)
+    result: Mapped[str] = mapped_column(String(10))
+    variant: Mapped[str] = mapped_column(String(40))
+    start_fen: Mapped[str] = mapped_column(String(400))
+    plies: Mapped[int] = mapped_column(Integer)
+    termination: Mapped[str | None] = mapped_column(String(200))
+    pdn: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class GamePositionRow(Base):
+    __tablename__ = "game_positions"
+    __table_args__ = (UniqueConstraint("game_id", "ply", name="uq_game_positions_game_ply"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(ForeignKey("games.id"), index=True)
+    ply: Mapped[int] = mapped_column(Integer)
+    position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"), index=True)
+    move: Mapped[str | None] = mapped_column(String(80))
+    label: Mapped[str | None] = mapped_column(String(20))      # G13 analysis label, if analysed
+    regret: Mapped[float | None] = mapped_column(Float)

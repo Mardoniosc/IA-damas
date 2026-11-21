@@ -22,6 +22,8 @@ from damas_ai.kb.models import (
     ConsensusRow,
     DecisionRow,
     EngineAnalysisRow,
+    GamePositionRow,
+    GameRow,
     PositionRow,
     TacticalRow,
     TagRow,
@@ -171,6 +173,30 @@ class KnowledgeBase:
                           engines=view["engines"], detail=view))
         return pos
 
+    def record_game(self, s: Session, game: Any, source: str, pdn_text: str,
+                    analysis: Any | None = None) -> GameRow:
+        """G13: a replayed game (``games.pdn.ReplayedGame``), optionally with its ``GameAnalysis``.
+        Every position before a move is upserted and linked by ply."""
+        if not game.ok:
+            raise ValueError(f"game did not replay: {game.error}")
+        tags = game.pdn.tags
+        row = GameRow(source=source, event=tags.get("Event"), white=tags.get("White", "?"),
+                      black=tags.get("Black", "?"), result=game.pdn.result, variant=game.ruleset.variant,
+                      start_fen=to_fen(game.start), plies=len(game.moves),
+                      termination=tags.get("Termination"), pdn=pdn_text)
+        s.add(row)
+        s.flush()
+        labels = {p.ply - 1: p for p in analysis.plies} if analysis is not None else {}
+        from damas_ai.rules.notation import format_move
+
+        for ply, move in enumerate(game.moves):
+            pos = self.upsert_position(s, game.states[ply].position, game.ruleset)
+            pa = labels.get(ply)
+            s.add(GamePositionRow(game_id=row.id, ply=ply, position_id=pos.id,
+                                  move=format_move(game.start.geometry, move),
+                                  label=pa.label if pa else None, regret=pa.regret if pa else None))
+        return row
+
     # ---------------------------------------------------------------- queries
 
     def stats(self) -> dict[str, Any]:
@@ -185,6 +211,7 @@ class KnowledgeBase:
             return {"positions": count(PositionRow), "positions_by_variant": by_variant,
                     "engine_analyses": count(EngineAnalysisRow), "consensus_records": count(ConsensusRow),
                     "tactical_records": count(TacticalRow), "decisions": count(DecisionRow),
+                    "games": count(GameRow), "game_positions": count(GamePositionRow),
                     "tags": tags, "consensus_classes": classes}
 
     def find(self, variant: str | None = None, tag: str | None = None, classification: str | None = None,

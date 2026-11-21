@@ -5,12 +5,12 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G12 complete** (latest: [G12 report](docs/reports/g12/g12-report.md)). The platform has
+> **Status: G1–G13 complete** (latest: [G13 report](docs/reports/g13/g13-report.md)). The platform has
 > its own engine, which plays **Brazilian** and International (an untuned baseline, weaker than Scan
 > and Kingsrow). Disagreements between engines are classified (G7) and escalated adaptively (G8),
 > tactics and critical positions are detected (G9), and a decision layer recommends
-> a move with confidence (G10), all evidence can be stored and queried in a knowledge base (G11), and engines play
-> arbitrated tournaments with Elo estimates (G12). The owner authorized proceeding
+> a move with confidence (G10), all evidence can be stored and queried in a knowledge base (G11), engines play
+> arbitrated tournaments with Elo estimates (G12), and games become analyses and datasets (G13). The owner authorized proceeding
 > gate by gate with a commit at the end of each.
 
 ## Key G1 finding (read this first)
@@ -42,6 +42,7 @@ backend/                 Python package `damas_ai`
                          strategy/, decision/ = profile, recommended move (G10);
                          kb/ = knowledge base, Alembic migrations in backend/alembic (G11);
                          bench/ = tournaments, Elo, PDN (G12);
+                         games/ = PDN replay, game analysis, self-play, datasets (G13);
                          api/ = local HTTP API (G6-G11)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
@@ -130,6 +131,16 @@ Tournament (Rules Core as arbiter; paired openings; Elo with 95% interval):
 
 ```bash
 cd backend && python -m damas_ai.bench --config ../config/engines.toml --variant brazilian-8x8 --players "engine:damasai_br@depth=6" "engine:damasai_br@depth=3" greedy random --openings 8 --out ../reports/bench/br
+```
+
+Self-play games and a leakage-controlled dataset (G13):
+
+```bash
+cd backend && python -m damas_ai.games selfplay --variant brazilian-8x8 --games 300 --depth 4 --out ../reports/bench/selfplay
+```
+
+```bash
+cd backend && python -m damas_ai.games dataset ../reports/bench/selfplay/games.pdn --jsonl ../reports/bench/selfplay/games.jsonl --out ../reports/bench/dataset
 ```
 
 Knowledge base (ingest any gate's JSONL, then query):

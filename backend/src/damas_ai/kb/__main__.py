@@ -8,7 +8,8 @@
     python -m damas_ai.kb --db ... show 12
 
 ``--db`` defaults to DAMAS_DATABASE_URL. Kinds: analysis (G6), consensus (G7), adaptive (G8),
-tactics (G9), decision (G10). JSONL files are the outputs of the corresponding CLIs.
+tactics (G9), decision (G10), pdn (G13 games). JSONL files are the outputs of the
+corresponding CLIs; pdn takes PDN files.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("migrate")
     ing = sub.add_parser("ingest")
-    ing.add_argument("--kind", required=True, choices=("analysis", "consensus", "adaptive", "tactics", "decision"))
+    ing.add_argument("--kind", required=True, choices=("analysis", "consensus", "adaptive", "tactics", "decision", "pdn"))
     ing.add_argument("--variant", help="required for tactics and decision records")
     ing.add_argument("files", nargs="+", type=Path)
     sub.add_parser("stats")
@@ -58,6 +59,22 @@ def main(argv: list[str] | None = None) -> int:
             print("--variant is required for tactics/decision", file=sys.stderr)
             return 2
         count = errors = 0
+        if ns.kind == "pdn":
+            from damas_ai.games.pdn import game_text, parse_pdn, replay
+
+            for path in ns.files:
+                text = path.read_text(encoding="utf-8")
+                with kb.session() as s:
+                    for g in parse_pdn(text):
+                        r = replay(g)
+                        if not r.ok:
+                            errors += 1
+                            print(f"{path}: skipped a game ({r.error})", file=sys.stderr)
+                            continue
+                        kb.record_game(s, r, str(path), game_text(g))
+                        count += 1
+            print(json.dumps({"ingested": count, "errors": errors}))
+            return 1 if errors else 0
         for path in ns.files:
             with kb.session() as s:
                 for line in path.read_text(encoding="utf-8").splitlines():

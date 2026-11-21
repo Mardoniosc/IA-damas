@@ -77,7 +77,7 @@ never authorities.
 | `decision` | Minimax normalized-regret decision with confidence (ADR-012) | **G10 (exists)** |
 | `kb` | Knowledge base: SQLAlchemy + Alembic; SQLite verified, PostgreSQL-ready (ADR-013) | **G11 (exists)** |
 | `bench` | Rules-Core-arbitrated games, paired openings, Elo with intervals, PDN (ADR-014) | **G12 (exists)** |
-| `games`, `datasets` | PDN import, game annotation, dataset builds | G13 |
+| `games` | PDN replay, move analysis, self-play, leakage-controlled datasets (ADR-015) | **G13 (exists)** |
 | `learning` | Training/evaluation pipelines (PyTorch, optional) | G14 |
 | `api` | FastAPI app: health, variants, engines, analyses (local only, ADR-008) | **G6 (exists)** |
 
