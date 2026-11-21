@@ -86,16 +86,45 @@ def parse_move(position: Position, text: str) -> Move:
     squares = [conv(t) for t in tokens]
     origin, rest = squares[0], tuple(squares[1:])
     is_capture_text = "x" in text.lower()
+    legal = legal_moves(position)
     candidates = [
-        m for m in legal_moves(position)
+        m for m in legal
         if m.origin == origin and (m.path == rest or (len(rest) == 1 and m.destination == rest[0]))
         and (m.is_capture or not is_capture_text)
     ]
+    if not candidates and len(rest) > 1:
+        # A full path naming a different (equally legal) route: kings may land on any empty
+        # square beyond a captured piece, so writers (e.g. PlayOK) can name another route with the
+        # same origin, destination and captured pieces. That is the same move (Move.identity):
+        # derive the captured pieces from the written path and match by identity.
+        captured = _captured_along(position, (origin, *rest))
+        if captured is not None:
+            candidates = [m for m in legal if m.identity == (origin, rest[-1], captured)]
     if not candidates:
         raise NotationError(f"{text!r} is not legal in {position.to_dsa()}")
     if len(candidates) > 1:
         raise AmbiguousMoveError(f"{text!r} matches {len(candidates)} legal moves; give the full path")
     return candidates[0]
+
+
+def _captured_along(position: Position, path: tuple[int, ...]) -> frozenset[int] | None:
+    """Pieces jumped along a written capture path: exactly one occupied square per segment.
+    Returns None if a segment is not a diagonal or does not jump exactly one piece."""
+    rays = position.geometry.rays
+    captured: set[int] = set()
+    for a, b in zip(path, path[1:]):
+        between = None
+        for ray in rays[a]:
+            if b in ray:
+                between = ray[: ray.index(b)]
+                break
+        if between is None:
+            return None
+        occupied = [sq for sq in between if position.squares[sq] != Piece.EMPTY and sq != path[0]]
+        if len(occupied) != 1:
+            return None
+        captured.add(occupied[0])
+    return frozenset(captured)
 
 
 # --------------------------------------------------------------------------- PDN FEN

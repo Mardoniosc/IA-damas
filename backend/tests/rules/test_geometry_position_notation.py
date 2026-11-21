@@ -124,3 +124,14 @@ def test_parse_short_capture_ambiguity_is_reported() -> None:
     with pytest.raises(AmbiguousMoveError):
         parse_move(q, "c5xd8")
     assert parse_move(q, "c5xe3xg5xd8").captured != parse_move(q, "c5xf2xh4xd8").captured
+
+
+def test_parse_accepts_an_equivalent_king_route_written_by_other_tools() -> None:
+    """PlayOK wrote 'g1xd4xa7' where the generator's representative route is 'g1xe3xa7': same
+    origin, destination and captured pieces (f2, c5), so it is the same move (real game, G15)."""
+    p = pos("c1 Kf2 h2 a5 c5", "Kg1 h4 c7 b8 d8 f8", side="B")
+    m = parse_move(p, "g1xd4xa7")
+    assert {to_algebraic(BOARD_8X8, s) for s in m.captured} == {"f2", "c5"}
+    assert m == parse_move(p, "g1xe3xa7")
+    with pytest.raises(NotationError):
+        parse_move(p, "g1xd4xb6xa7")  # a path that jumps nothing in its last segment
