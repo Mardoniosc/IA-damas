@@ -137,3 +137,13 @@ def test_game_text_round_trip() -> None:
     (g,) = parse_pdn(make_games(1, seed=6))
     (again,) = parse_pdn(game_text(g))
     assert again.moves == g.moves and again.result == g.result and replay(again).ok
+
+
+def test_game_ids_are_unique_across_same_named_files(tmp_path: Path) -> None:
+    from damas_ai.games.__main__ import _load
+
+    for d in ("a", "b"):
+        (tmp_path / d).mkdir()
+        (tmp_path / d / "games.pdn").write_text(make_games(1, seed=8), encoding="utf-8")
+    ids = [gid for gid, _ in _load([tmp_path / "a" / "games.pdn", tmp_path / "b" / "games.pdn"])]
+    assert ids == ["a/games#1", "b/games#1"]

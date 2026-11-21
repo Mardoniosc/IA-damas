@@ -78,7 +78,7 @@ never authorities.
 | `kb` | Knowledge base: SQLAlchemy + Alembic; SQLite verified, PostgreSQL-ready (ADR-013) | **G11 (exists)** |
 | `bench` | Rules-Core-arbitrated games, paired openings, Elo with intervals, PDN (ADR-014) | **G12 (exists)** |
 | `games` | PDN replay, move analysis, self-play, leakage-controlled datasets (ADR-015) | **G13 (exists)** |
-| `learning` | Training/evaluation pipelines (PyTorch, optional) | G14 |
+| `learning` | Outcome models (linear, residual, MLP), pluggable search evaluator, match-based adoption (ADR-016) | **G14 (exists)** |
 | `api` | FastAPI app: health, variants, engines, analyses (local only, ADR-008) | **G6 (exists)** |
 
 ## 5. Dependency introduction policy

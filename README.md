@@ -5,12 +5,13 @@ An independent, research-driven, multi-engine intelligence platform for **Brazil
 advisors: an internal Rules Core is the authority on legal moves, and an independent
 decision-intelligence layer is the long-term product.
 
-> **Status: G1–G13 complete** (latest: [G13 report](docs/reports/g13/g13-report.md)). The platform has
+> **Status: G1–G14 complete** (latest: [G14 report](docs/reports/g14/g14-report.md)). The platform has
 > its own engine, which plays **Brazilian** and International (an untuned baseline, weaker than Scan
 > and Kingsrow). Disagreements between engines are classified (G7) and escalated adaptively (G8),
 > tactics and critical positions are detected (G9), and a decision layer recommends
 > a move with confidence (G10), all evidence can be stored and queried in a knowledge base (G11), engines play
-> arbitrated tournaments with Elo estimates (G12), and games become analyses and datasets (G13). The owner authorized proceeding
+> arbitrated tournaments with Elo estimates (G12), games become analyses and datasets (G13),
+> and learned evaluations are trained and judged by matches (G14: none adopted yet, see the report). The owner authorized proceeding
 > gate by gate with a commit at the end of each.
 
 ## Key G1 finding (read this first)
@@ -43,6 +44,7 @@ backend/                 Python package `damas_ai`
                          kb/ = knowledge base, Alembic migrations in backend/alembic (G11);
                          bench/ = tournaments, Elo, PDN (G12);
                          games/ = PDN replay, game analysis, self-play, datasets (G13);
+                         learning/ = value models, learned evaluators, match-based adoption (G14);
                          api/ = local HTTP API (G6-G11)
   tests/                 pytest suite; tests/fixtures/oracle = independent reference data
 frontend/                Angular app - intentionally NOT scaffolded yet (see frontend/README.md)
@@ -141,6 +143,16 @@ cd backend && python -m damas_ai.games selfplay --variant brazilian-8x8 --games 
 
 ```bash
 cd backend && python -m damas_ai.games dataset ../reports/bench/selfplay/games.pdn --jsonl ../reports/bench/selfplay/games.jsonl --out ../reports/bench/dataset
+```
+
+Learning (held-out comparison, then learned-vs-baseline matches):
+
+```bash
+cd backend && python -m damas_ai.learning compare --dataset ../reports/bench/dataset --out ../reports/bench/compare.json
+```
+
+```bash
+cd backend && python -m damas_ai.learning match --model src/damas_ai/learning/models/brazilian_residual_v1.json --depth 4 --openings 64 --out ../reports/bench/learned-match
 ```
 
 Knowledge base (ingest any gate's JSONL, then query):

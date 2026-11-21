@@ -33,7 +33,7 @@ def emit(line: str) -> None:
 
 class HubServer:
     def __init__(self) -> None:
-        self.params = {"variant": "brazilian", "tt-entries": str(1 << 20)}
+        self.params = {"variant": "brazilian", "tt-entries": str(1 << 20), "eval-model": ""}
         self.searcher: Searcher | None = None
         self.position: Position | None = None
         self.history: tuple[int, ...] = ()
@@ -55,6 +55,8 @@ class HubServer:
                                  type="enum", values="brazilian international"))
             emit(hub.format_line("param", name="tt-entries", value=self.params["tt-entries"],
                                  type="int", min=1024, max=1 << 24))
+            emit(hub.format_line("param", name="eval-model", value=self.params["eval-model"],
+                                 type="string"))  # G14: path to a learned linear model (JSON)
             emit("wait")
         elif c == "set-param":
             name, value = a.get("name", ""), a.get("value", "")
@@ -63,7 +65,17 @@ class HubServer:
             elif name in self.params:
                 self.params[name] = value
         elif c == "init":
-            self.searcher = Searcher(int(self.params["tt-entries"]))
+            evaluator = None
+            if self.params["eval-model"]:
+                from pathlib import Path
+
+                from damas_ai.learning.evaluator import load_evaluator
+
+                try:
+                    evaluator = load_evaluator(Path(self.params["eval-model"]))
+                except (OSError, ValueError, KeyError) as exc:
+                    emit(hub.format_line("error", message=f"eval-model: {exc}"))
+            self.searcher = Searcher(int(self.params["tt-entries"]), evaluator)
             emit("ready")
         elif c == "new-game":
             if self.searcher:

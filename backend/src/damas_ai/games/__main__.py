@@ -25,7 +25,7 @@ from damas_ai.games.pdn import parse_pdn, replay
 def _load(paths: list[Path]):  # type: ignore[no-untyped-def]
     for path in paths:
         for i, g in enumerate(parse_pdn(path.read_text(encoding="utf-8"))):
-            yield f"{path.stem}#{i + 1}", g
+            yield f"{path.parent.name}/{path.stem}#{i + 1}", g  # unique across same-named files
 
 
 def cmd_replay(ns: argparse.Namespace) -> int:

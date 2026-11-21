@@ -62,18 +62,22 @@ class SearchPlayer:
     """The internal search run in-process at a fixed depth (deterministic; fast data generation
     in G13). For engine comparisons use the Hub process via ``EnginePlayer`` (ADR-010)."""
 
-    def __init__(self, depth: int, name: str | None = None) -> None:
+    def __init__(self, depth: int | None = None, name: str | None = None, evaluator=None,  # type: ignore[no-untyped-def]
+                 move_time_s: float | None = None) -> None:
         from damas_ai.search import Searcher
 
-        self.depth = depth
-        self.name = name or f"search@depth={depth}"
-        self.searcher = Searcher()
+        if (depth is None) == (move_time_s is None):
+            raise ValueError("give exactly one of depth or move_time_s")
+        self.depth, self.move_time_s = depth, move_time_s
+        self.name = name or (f"search@depth={depth}" if depth else f"search@{move_time_s}s")
+        self.searcher = Searcher(evaluator=evaluator)
 
     def new_game(self) -> None:
         self.searcher.clear()
 
     def choose(self, state: GameState, root: GameState, history: tuple[Move, ...]) -> MoveChoice:
-        out = self.searcher.search(state.position, state.keys_since_irreversible, depth=self.depth)
+        out = self.searcher.search(state.position, state.keys_since_irreversible, depth=self.depth,
+                                   move_time_s=self.move_time_s)
         return MoveChoice(out.best_move, {"score_value": (out.score or 0) / 100, "score_kind": "eval",
                                           "depth": out.depth})
 

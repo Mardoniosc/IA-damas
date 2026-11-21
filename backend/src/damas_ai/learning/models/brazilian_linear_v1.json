@@ -1,0 +1,44 @@
+{
+  "features": [
+    "men",
+    "kings",
+    "tempo",
+    "center",
+    "back_rank"
+  ],
+  "weights": [
+    0.8051186048455634,
+    0.8349083977239419,
+    -0.051015691484521106,
+    0.09104587546806704,
+    -0.04408177849363191
+  ],
+  "bias": 0.08602972310775826,
+  "l2": 100.0,
+  "train": {
+    "dataset": "..\\reports\\bench\\g13-dataset-br",
+    "files": {
+      "train.jsonl": {
+        "records": 18808,
+        "sha256": "bce1e8cb3b4d6a412c7b5f3a320ff326a2d84fd2e7bb322fcc388e3cc13924be"
+      },
+      "val.jsonl": {
+        "records": 2588,
+        "sha256": "75e03df971e1e6f6417baf003133ebba0d5dcac70560a45b356cc790637e4a69"
+      },
+      "test.jsonl": {
+        "records": 2063,
+        "sha256": "43e0765b0a036fb00d2eaa6921a2bdea0a823d77c3d0653fe8599ea866d88eaf"
+      }
+    },
+    "manifest_sha256": "87a85e156455d9cef3ab8e744428984c93af99b1ff8574a0de23e588a7c2e043",
+    "val_logloss": 0.61304,
+    "l2": 100.0,
+    "test": {
+      "logloss": 0.61569,
+      "brier": 0.11644,
+      "decisive_accuracy": 0.7464,
+      "n": 2063
+    }
+  }
+}

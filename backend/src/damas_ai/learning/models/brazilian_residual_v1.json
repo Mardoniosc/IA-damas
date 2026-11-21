@@ -1,0 +1,29 @@
+{
+  "features": [
+    "baseline_eval",
+    "tempo",
+    "center",
+    "back_rank"
+  ],
+  "weights": [
+    0.4455977017016627,
+    0.011801021023818954,
+    0.09060679207130626,
+    0.06488713255332343
+  ],
+  "bias": 0.11645173807589511,
+  "l2": 100.0,
+  "train": {
+    "kind": "residual on baseline eval",
+    "dataset": "..\\reports\\bench\\g13-dataset-br",
+    "manifest_sha256": "87a85e156455d9cef3ab8e744428984c93af99b1ff8574a0de23e588a7c2e043",
+    "val_logloss": 0.61122,
+    "l2": 100.0,
+    "test": {
+      "logloss": 0.65093,
+      "brier": 0.12145,
+      "decisive_accuracy": 0.7472,
+      "n": 2063
+    }
+  }
+}

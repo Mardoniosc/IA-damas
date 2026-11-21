@@ -62,8 +62,11 @@ def score_to_men(score: int) -> str:
 
 
 class Searcher:
-    def __init__(self, tt_entries: int = 1 << 20) -> None:
+    def __init__(self, tt_entries: int = 1 << 20,
+                 evaluator: Callable[[Position], int] | None = None) -> None:
         self.tt_entries = tt_entries
+        # Baseline eval by default; a learned evaluator (G14) can be plugged in.
+        self.evaluate = evaluator or evaluate
         self.tt: dict[int, tuple[int, int, int, tuple[int, int, frozenset[int]] | None]] = {}
         self.history: dict[tuple[int, int], int] = {}
         self.killers: dict[int, list[tuple[int, int, frozenset[int]]]] = {}
@@ -138,7 +141,7 @@ class Searcher:
             return -WIN + ply
         quiescent = depth <= 0
         if quiescent and not moves[0].is_capture:
-            return evaluate(pos)
+            return self.evaluate(pos)
 
         alpha0 = alpha
         tt_move = None
