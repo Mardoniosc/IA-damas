@@ -27,6 +27,8 @@ data/egdb/
 logs/
 var/
 reports/poc-runs/
+reports/bench/
+reports/*.log
 
 # Node / Angular (when frontend is scaffolded)
 node_modules/
